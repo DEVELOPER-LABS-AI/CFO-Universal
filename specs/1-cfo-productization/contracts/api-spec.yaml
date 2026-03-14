@@ -1,0 +1,611 @@
+openapi: 3.1.0
+info:
+  title: DevLabs CFO - Universal Business Edition API
+  version: 1.0.0
+  description: |
+    REST API for DevLabs CFO productization strategy featuring:
+    - Multi-business-type configuration
+    - Profit First allocation system
+    - Autonomous financial agents
+    - QuickBooks Online + Mercury + Xero integrations
+
+servers:
+  - url: https://api.devlabscfo.com/v1
+    description: Production
+  - url: http://localhost:3000/api
+    description: Local development
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Core Entities
+    BusinessType:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Service Agency"
+        code:
+          type: string
+          enum: [SERVICE_AGENCY, CONSULTING_FIRM, SAAS, PROFESSIONAL_SERVICES]
+        terminology:
+          type: object
+          properties:
+            client: { type: string }
+            vendor: { type: string }
+            invoice: { type: string }
+            project: { type: string }
+        defaultAllocations:
+          type: object
+          properties:
+            profit: { type: number, minimum: 0, maximum: 100 }
+            ownerPay: { type: number, minimum: 0, maximum: 100 }
+            tax: { type: number, minimum: 0, maximum: 100 }
+            operating: { type: number, minimum: 0, maximum: 100 }
+
+    OrganizationConfiguration:
+      type: object
+      properties:
+        organizationId:
+          type: string
+          format: uuid
+        businessTypeId:
+          type: string
+          format: uuid
+        customTerminology:
+          type: object
+          nullable: true
+        enableProfitFirst:
+          type: boolean
+        canChangeBusinessType:
+          type: boolean
+
+    AllocationTarget:
+      type: object
+      required: [profitPercent, ownerPayPercent, taxPercent, operatingPercent]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        profitPercent:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+        ownerPayPercent:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+        taxPercent:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+        operatingPercent:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 100
+        effectiveDate:
+          type: string
+          format: date
+        rolloutPhase:
+          type: integer
+          minimum: 1
+          maximum: 8
+
+    VirtualAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        accountType:
+          type: string
+          enum: [PROFIT, OWNER_PAY, TAX, OPERATING]
+        balance:
+          type: number
+          format: decimal
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: "USD"
+
+    AgentExecutionLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        agentType:
+          type: string
+          enum: [INVOICE_GENERATOR, EXPENSE_CATEGORIZER, CASH_FLOW_MONITOR]
+        status:
+          type: string
+          enum: [RUNNING, SUCCESS, FAILED, PARTIAL, ROLLED_BACK]
+        actionsTaken:
+          type: array
+          items:
+            type: object
+            properties:
+              action: { type: string }
+              entityType: { type: string }
+              entityId: { type: string }
+              oldValue: { type: object }
+              newValue: { type: object }
+              confidence: { type: number, minimum: 0, maximum: 1 }
+        rollbackToken:
+          type: string
+          format: uuid
+          nullable: true
+        rollbackAvailable:
+          type: boolean
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Business Configuration Endpoints
+  /business-types:
+    get:
+      summary: List available business types
+      tags: [Configuration]
+      responses:
+        '200':
+          description: List of business type templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BusinessType'
+
+  /organizations/{orgId}/configuration:
+    get:
+      summary: Get organization configuration
+      tags: [Configuration]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Organization configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrganizationConfiguration'
+
+    put:
+      summary: Update organization configuration
+      tags: [Configuration]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessTypeId:
+                  type: string
+                  format: uuid
+                customTerminology:
+                  type: object
+                enableProfitFirst:
+                  type: boolean
+      responses:
+        '200':
+          description: Configuration updated
+        '400':
+          description: Business type locked (cannot change after grace period)
+
+  # Profit First Endpoints
+  /organizations/{orgId}/allocations/targets:
+    get:
+      summary: Get current allocation targets
+      tags: [Profit First]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Current allocation target
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllocationTarget'
+
+    post:
+      summary: Create new allocation target (quarterly adjustment)
+      tags: [Profit First]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [profitPercent, ownerPayPercent, taxPercent, operatingPercent, effectiveDate]
+              properties:
+                profitPercent: { type: number }
+                ownerPayPercent: { type: number }
+                taxPercent: { type: number }
+                operatingPercent: { type: number }
+                effectiveDate: { type: string, format: date }
+                rolloutPhase: { type: integer }
+      responses:
+        '201':
+          description: Allocation target created
+        '400':
+          description: Validation error (percentages don't sum to 100%)
+
+  /organizations/{orgId}/allocations/accounts:
+    get:
+      summary: Get virtual account balances with CAP/TAP analysis
+      tags: [Profit First]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Virtual accounts with Current vs Target percentages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/VirtualAccount'
+                  caps:
+                    type: object
+                    properties:
+                      profit: { type: number }
+                      ownerPay: { type: number }
+                      tax: { type: number }
+                      operating: { type: number }
+                  taps:
+                    type: object
+                    properties:
+                      profit: { type: number }
+                      ownerPay: { type: number }
+                      tax: { type: number }
+                      operating: { type: number }
+                  variance:
+                    type: object
+                    description: CAP - TAP difference
+                  totalBalance:
+                    type: number
+
+  /organizations/{orgId}/allocations/distribute:
+    post:
+      summary: Process revenue deposit allocation
+      tags: [Profit First]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [depositAmount, sourceDepositId]
+              properties:
+                depositAmount:
+                  type: number
+                  format: decimal
+                  minimum: 0.01
+                sourceDepositId:
+                  type: string
+                  description: External bank deposit reference
+      responses:
+        '201':
+          description: Allocation created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  allocationId: { type: string, format: uuid }
+                  profitAmount: { type: number }
+                  ownerPayAmount: { type: number }
+                  taxAmount: { type: number }
+                  operatingAmount: { type: number }
+        '400':
+          description: Invalid deposit amount
+
+  # Autonomous Agent Endpoints
+  /agents:
+    get:
+      summary: List available autonomous agents
+      tags: [Agents]
+      responses:
+        '200':
+          description: List of agent types with status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    agentType: { type: string }
+                    enabled: { type: boolean }
+                    lastExecution: { type: string, format: date-time }
+                    schedule: { type: string }
+
+  /organizations/{orgId}/agents/{agentType}/enable:
+    post:
+      summary: Enable autonomous agent
+      tags: [Agents]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: agentType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [EXPENSE_CATEGORIZER, CASH_FLOW_MONITOR, INVOICE_GENERATOR]
+      responses:
+        '200':
+          description: Agent enabled
+
+  /organizations/{orgId}/agents/{agentType}/disable:
+    post:
+      summary: Disable autonomous agent
+      tags: [Agents]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: agentType
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent disabled
+
+  /organizations/{orgId}/agents/executions:
+    get:
+      summary: Get agent execution history (audit trail)
+      tags: [Agents]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: agentType
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Agent execution logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentExecutionLog'
+
+  /agents/rollback:
+    post:
+      summary: Rollback agent actions using rollback token
+      tags: [Agents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rollbackToken]
+              properties:
+                rollbackToken:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Rollback successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  rolledBackActions: { type: integer }
+                  message: { type: string }
+        '400':
+          description: Rollback window expired or token invalid
+        '404':
+          description: Rollback token not found
+
+  # QuickBooks Integration Endpoints
+  /integrations/quickbooks/authorize:
+    get:
+      summary: Initiate QuickBooks OAuth flow
+      tags: [Integrations]
+      parameters:
+        - name: orgId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '302':
+          description: Redirect to QuickBooks authorization
+
+  /integrations/quickbooks/callback:
+    get:
+      summary: Handle QuickBooks OAuth callback
+      tags: [Integrations]
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: realmId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authorization successful
+        '400':
+          description: Missing code or realmId
+
+  /organizations/{orgId}/integrations/quickbooks/sync:
+    post:
+      summary: Trigger manual QuickBooks sync
+      tags: [Integrations]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                syncType:
+                  type: string
+                  enum: [FULL, INCREMENTAL]
+                  default: INCREMENTAL
+      responses:
+        '202':
+          description: Sync job queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId: { type: string }
+                  estimatedDuration: { type: string }
+
+  /organizations/{orgId}/integrations/quickbooks/status:
+    get:
+      summary: Get QuickBooks connection status
+      tags: [Integrations]
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Connection status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connected: { type: boolean }
+                  companyName: { type: string }
+                  lastSyncAt: { type: string, format: date-time }
+                  tokenExpiresAt: { type: string, format: date-time }
+                  syncHealth: { type: string, enum: [HEALTHY, DEGRADED, FAILED] }
+
+  # Webhook Endpoints
+  /webhooks/quickbooks:
+    post:
+      summary: Receive QuickBooks change notifications
+      tags: [Webhooks]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook received
+        '403':
+          description: Invalid signature
+
+tags:
+  - name: Configuration
+    description: Business type and organization configuration management
+  - name: Profit First
+    description: Allocation targets, virtual accounts, and CAP/TAP monitoring
+  - name: Agents
+    description: Autonomous financial agent management and audit logs
+  - name: Integrations
+    description: QuickBooks, Mercury, Xero, and Plaid integrations
+  - name: Webhooks
+    description: External webhook handlers

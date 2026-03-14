@@ -1,0 +1,20 @@
+{
+  "crons": [
+    {
+      "path": "/api/xero/sync/cron",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/mercury/sync/cron",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/contractor-reminders",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/utilization/snapshots/generate",
+      "schedule": "0 6 * * 1"
+    }
+  ]
+}

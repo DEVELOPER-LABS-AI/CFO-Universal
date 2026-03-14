@@ -1,0 +1,13 @@
+{
+  "region": "us-east-1",
+  "vpcId": "vpc-006f463f16d94ca27",
+  "publicSubnetId": "subnet-09315c6dc4101405c",
+  "privateSubnetId": "subnet-07f1d5585dbd32b29",
+  "natGatewayId": "nat-0117cc2ea6d9f5944",
+  "elasticIp": "52.1.18.251",
+  "elasticIpAllocationId": "eipalloc-03838a6fdc746287e",
+  "securityGroupId": "sg-0db73f493c1cdf723",
+  "internetGatewayId": "igw-0ca426ae809151720",
+  "publicRouteTableId": "rtb-0273c10b815495984",
+  "privateRouteTableId": "rtb-0071b2f1d6ce574ed"
+}

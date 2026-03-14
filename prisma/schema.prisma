@@ -1,0 +1,2894 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+  CHURNED
+
+  @@map("ClientStatus")
+}
+
+enum RateType {
+  HOURLY
+  DAILY
+  MONTHLY
+  VARIABLE
+
+  @@map("RateType")
+}
+
+enum EngagementType {
+  FULL_TIME
+  PART_TIME
+  PROJECT
+  OWNER
+  AGENCY
+
+  @@map("EngagementType")
+}
+
+enum StaffStatus {
+  ACTIVE
+  TERMINATED
+
+  @@map("StaffStatus")
+}
+
+enum ContractorStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("ContractorStatus")
+}
+
+enum RevenueStatus {
+  INVOICED
+  RECEIVED
+
+  @@map("RevenueStatus")
+}
+
+enum SyncSource {
+  XERO
+  MERCURY
+  MANUAL
+  IMPORT
+
+  @@map("SyncSource")
+}
+
+enum ExpenseCategory {
+  CONTRACTOR_COST
+  SUBSCRIPTION
+  TOOLS
+  PAYROLL
+  OVERHEAD
+  MARKETING
+  TRANSFER
+  OTHER
+
+  @@map("ExpenseCategory")
+}
+
+enum OAuthProvider {
+  XERO
+  SLACK
+  MERCURY
+
+  @@map("OAuthProvider")
+}
+
+enum SyncStatus {
+  PENDING
+  SUCCESS
+  FAILED
+
+  @@map("SyncStatus")
+}
+
+enum TargetScope {
+  GLOBAL
+  SERVICE
+  CLIENT
+
+  @@map("TargetScope")
+}
+
+enum MerchantMappingMode {
+  SINGLE
+  PER_TRANSACTION
+
+  @@map("merchant_mapping_mode")
+}
+
+enum UserRole {
+  ADMIN
+  EXECUTIVE
+  ANALYST
+  AGENCY_ADMIN
+  CONTRACTOR
+  BDR
+
+  @@map("UserRole")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("UserStatus")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PAID
+
+  @@map("InvoiceStatus")
+}
+
+enum InvoiceLineItemType {
+  STAFF_COST
+  BONUS
+  SERVICE
+  REIMBURSEMENT
+  CUSTOM
+
+  @@map("InvoiceLineItemType")
+}
+
+enum MarkupType {
+  PERCENTAGE
+  FLAT_RATE
+
+  @@map("MarkupType")
+}
+
+enum MarkupBasis {
+  BASE_PAY
+  TOTAL_COMPENSATION
+
+  @@map("MarkupBasis")
+}
+
+enum RelationshipType {
+  RETAINER
+  PROJECT_BASED
+  HOURLY
+  VALUE_BASED
+  CUSTOM
+
+  @@map("RelationshipType")
+}
+
+enum AssignmentType {
+  PROJECT
+  RETAINER
+
+  @@map("AssignmentType")
+}
+
+enum AuditActionType {
+  USER_CREATED
+  USER_EDITED
+  USER_DELETED
+  USER_DEACTIVATED
+  USER_REACTIVATED
+  ROLE_CHANGED
+  PASSWORD_RESET
+  USER_PROFILE_RECOVERED
+
+  @@map("AuditActionType")
+}
+
+// Feature 3: Client Portfolio & Staff Management
+// StaffType enum removed — staff_type is now a dynamic String column backed by the StaffRole config table
+
+enum AllocationType {
+  SEAT_BASED       // Allocate exact seats (e.g., Salesforce)
+  PERCENTAGE_BASED // Allocate percentage (e.g., Adobe Creative Cloud)
+
+  @@map("AllocationType")
+}
+
+// Xero Integration Enums
+enum ConnectionStatus {
+  ACTIVE
+  DISCONNECTED
+  TOKEN_EXPIRED
+  ERROR
+
+  @@map("ConnectionStatus")
+}
+
+enum XeroSyncStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+
+  @@map("XeroSyncStatus")
+}
+
+enum SyncType {
+  INVOICES
+  EXPENSES
+  CONTACTS
+  FULL
+
+  @@map("SyncType")
+}
+
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  PARTIAL
+
+  @@map("SyncJobStatus")
+}
+
+enum SyncTrigger {
+  SCHEDULED
+  MANUAL
+  RETRY
+
+  @@map("SyncTrigger")
+}
+
+enum MappingType {
+  EMAIL_EXACT
+  NAME_EXACT
+  NAME_FUZZY
+  MANUAL
+
+  @@map("MappingType")
+}
+
+enum NotificationType {
+  XERO_INVOICE_CREATED
+  XERO_INVOICE_UPDATED
+  XERO_CONTACT_CREATED
+  XERO_CONTACT_UPDATED
+  SYNC_COMPLETED
+  SYNC_FAILED
+  INTEGRATION_ERROR
+  SYSTEM_ALERT
+  INFO
+  WARNING
+  ERROR
+  SERVICE_COVERAGE_WARNING
+  SERVICE_COVERAGE_PAST_DUE
+  SERVICE_COVERAGE_SUSPENDED
+
+  // Feature 15: Timesheets & Time Tracking
+  TIMESHEET_SUBMITTED
+  TIMESHEET_APPROVED
+  TIMESHEET_REJECTED
+  TIMESHEET_REMINDER
+
+  // Feature 16: Utilization & Bench Cost
+  UTILIZATION_WARNING
+  UTILIZATION_CRITICAL
+
+  @@map("NotificationType")
+}
+
+// Feature 9: Service Contracts & Billing Models
+enum BillingModel {
+  CONTRACT
+  PROJECT
+  RETAINER
+
+  @@map("BillingModel")
+}
+
+enum ContractStatus {
+  ACTIVE
+  COMPLETED
+  TERMINATED
+
+  @@map("ContractStatus")
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@map("NotificationPriority")
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+
+  @@map("NotificationStatus")
+}
+
+enum ExpenseType {
+  CONTRACTOR
+  SUBSCRIPTION
+  OVERHEAD
+  OTHER
+
+  @@map("ExpenseType")
+}
+
+enum RevenueSyncStatus {
+  SYNCED
+  MAPPING_FAILED
+  VALIDATION_FAILED
+  MANUAL
+
+  @@map("RevenueSyncStatus")
+}
+
+enum ExpenseSyncStatus {
+  SYNCED
+  CATEGORIZATION_FAILED
+  VALIDATION_FAILED
+  MANUAL
+
+  @@map("ExpenseSyncStatus")
+}
+
+// Mercury Integration Enums
+enum MercuryConnectionStatus {
+  ACTIVE
+  DISCONNECTED
+  API_ERROR
+
+  @@map("mercury_connection_status")
+}
+
+enum MercurySyncType {
+  TRANSACTIONS
+  BALANCES
+  FULL
+
+  @@map("mercury_sync_type")
+}
+
+enum MercurySyncStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  PARTIAL
+
+  @@map("mercury_sync_status")
+}
+
+enum MercurySyncTrigger {
+  SYSTEM
+  MANUAL
+  RETRY
+
+  @@map("mercury_sync_trigger")
+}
+
+enum MappingConfidence {
+  EXACT
+  FUZZY
+  MANUAL
+
+  @@map("mapping_confidence")
+}
+
+enum MappingSource {
+  SYSTEM
+  ADMIN_USER
+
+  @@map("mapping_source")
+}
+
+enum CategorizationRuleType {
+  MERCHANT_NAME
+  DESCRIPTION_KEYWORD
+  AMOUNT_RANGE
+
+  @@map("categorization_rule_type")
+}
+
+enum MercuryAccountType {
+  CHECKING
+  SAVINGS
+  TREASURY
+
+  @@map("mercury_account_type")
+}
+
+enum ExpenseRecordSyncStatus {
+  MANUAL
+  SYNCED
+  CATEGORIZATION_FAILED
+  MAPPING_FAILED
+
+  @@map("expense_record_sync_status")
+}
+
+// ============================================================================
+// FEATURE 6: CONTRACTOR PAYMENT PORTAL ENUMS
+// ============================================================================
+
+enum ContractorLineItemType {
+  REIMBURSEMENT
+  BONUS
+  OTHER
+
+  @@map("ContractorLineItemType")
+}
+
+enum ContractorDocumentType {
+  SOW
+  INVOICE
+  TAX_FORM
+  OTHER
+
+  @@map("ContractorDocumentType")
+}
+
+enum PaymentMethod {
+  ACH
+  DOMESTIC_WIRE
+  INTERNATIONAL_WIRE
+  CREDIT_CARD
+  CHECK
+
+  @@map("PaymentMethod")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("PaymentStatus")
+}
+
+enum PortalInvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+
+  @@map("PortalInvitationStatus")
+}
+
+// ============================================================================
+// FEATURE 7: CFO STRATEGIST ENUMS
+// ============================================================================
+
+enum CfoRecommendationCategory {
+  SUBSCRIPTION_OPTIMIZATION
+  STAFFING_EFFICIENCY
+  REVENUE_OPPORTUNITY
+  OVERHEAD_REDUCTION
+
+  @@map("CfoRecommendationCategory")
+}
+
+enum CfoRecommendationStatus {
+  ACTIVE
+  ACTED_ON
+  DISMISSED
+  DEFERRED
+
+  @@map("CfoRecommendationStatus")
+}
+
+enum CfoReportType {
+  DAILY
+  WEEKLY
+  MONTHLY
+
+  @@map("CfoReportType")
+}
+
+// ============================================================================
+// FEATURE 10: PROJECT RESOURCE ALLOCATION
+// ============================================================================
+
+enum ProjectStatus {
+  ACTIVE
+  UNDER_REVIEW
+  SUNSET
+  ARCHIVED
+
+  @@map("ProjectStatus")
+}
+
+enum CostSourceType {
+  STAFF
+  CONTRACTOR
+  SUBSCRIPTION
+  OTHER
+
+  @@map("CostSourceType")
+}
+
+// Feature 11: Cap Table
+enum EquityTransactionType {
+  GRANT
+  TRANSFER
+  PURCHASE
+  CANCELLATION
+
+  @@map("EquityTransactionType")
+}
+
+// ============================================================================
+// FEATURE 12: BDR PORTAL ENUMS
+// ============================================================================
+
+enum BDRReportStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  NEEDS_CORRECTION
+
+  @@map("BDRReportStatus")
+}
+
+enum BDRExpenseStatus {
+  SUBMITTED
+  APPROVED
+  REJECTED
+  REIMBURSED
+
+  @@map("BDRExpenseStatus")
+}
+
+enum BDRBaseMetric {
+  MEETINGS_BOOKED
+  MEETINGS_SHOWED
+
+  @@map("BDRBaseMetric")
+}
+
+// ============================================================================
+// FEATURE 15: TIMESHEETS & TIME TRACKING ENUMS
+// ============================================================================
+
+enum TimesheetStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+
+  @@map("TimesheetStatus")
+}
+
+// ============================================================================
+// CORE SCHEMA
+// ============================================================================
+
+model Organization {
+  id                String   @id @default(uuid())
+  name              String   @unique
+  subscription_tier String   @default("free") // free, pro, enterprise
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  clients            Client[]
+  services           Service[]
+  contractors        Contractor[]
+  revenue_records    RevenueRecord[]
+  expense_records    ExpenseRecord[]
+  oauth_tokens       OAuthToken[]
+  sync_logs          SyncLog[]
+  company_metrics    CompanyMetrics[]
+  financial_targets  FinancialTarget[]
+  growth_scenarios   GrowthScenario[]
+  user_organizations         UserOrganization[]
+  xero_connection            XeroConnection?
+  mercury_connection         MercuryConnection?
+  transaction_categorization_rules TransactionCategorizationRule[]
+  notifications              Notification[]
+  webhook_events             WebhookEvent[]
+
+  // Feature 3 Relations
+  staff              Staff[]
+  staff_roles        StaffRole[]
+  subscriptions      Subscription[]
+  agencies           Agency[]
+
+  // Feature: Dynamic Cost Sync
+  subscription_transaction_records SubscriptionTransactionRecord[]
+  client_cash_receipts             ClientCashReceipt[]
+  auto_sync_run_logs               AutoSyncRunLog[]
+
+  // Feature 6: Contractor Payment Portal
+  contractor_reminder_day      Int       @default(24)   // 1-28, day of month for invoice reminders
+  contractor_default_doc_types Json?     // Default required document types for new contractors
+  contractor_invoices          ContractorInvoice[]
+  contractor_documents         ContractorDocument[]
+  contractor_payments          ContractorPayment[]
+
+  // Email Settings (Resend)
+  email_enabled        Boolean @default(true)  // Master toggle for outbound emails
+  email_from_name      String  @default("DevLabs CFO")
+  email_from_address   String? // Verified sender address in Resend (null = use env default)
+  email_reply_to       String? // Reply-to address (null = no reply-to header)
+
+  // Cost Allocation Settings
+  include_owner_pay Boolean @default(true) // Include owner compensation in overhead spreading
+
+  // Service Coverage Settings
+  service_grace_period_days Int @default(30) // Days past due before service shutoff
+  service_warning_days      Int @default(7)  // Days before shutoff to send warning notification
+
+  vendor_expense_categories    VendorExpenseCategory[]
+  owner_monthly_pay            OwnerMonthlyPay[]
+  payment_method_fee_defaults  PaymentMethodFeeDefault[]
+
+  // Feature 9: Service Contracts
+  service_contracts            ServiceContract[]
+
+  // Feature 7: CFO Strategist
+  analyzer_thresholds          Json?     // JSONB: configurable thresholds for recommendation analyzers
+  cfo_recommendations          CfoRecommendation[]
+  cfo_reports                  CfoReport[]
+
+  // Feature 10: Project Resource Allocation
+  projects                     Project[]
+
+  // Feature 11: Cap Table
+  cap_table_stakeholders       CapTableStakeholder[]
+  share_classes                ShareClass[]
+  equity_transactions          EquityTransaction[]
+
+  // Feature 12: BDR Portal
+  bdr_pay_plans                BDRPayPlan[]
+  bdr_monthly_reports          BDRMonthlyReport[]
+  bdr_expense_categories       BDRExpenseCategory[]
+  bdr_expense_claims           BDRExpenseClaim[]
+
+  // Feature 15: Timesheets & Time Tracking
+  timesheets                   Timesheet[]
+  overtime_configs             OvertimeConfig[]
+
+  // Feature 16: Utilization & Bench Cost
+  utilization_snapshots        UtilizationSnapshot[]
+  utilization_targets          UtilizationTarget[]
+
+  @@map("core_organizations")
+}
+
+model UserOrganization {
+  id              String   @id @default(uuid())
+  user_id         String // Links to auth.users.id in Supabase Auth
+  organization_id String
+  role            String   @default("member") // owner, admin, member
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, organization_id])
+  @@index([user_id])
+  @@index([organization_id])
+  @@map("user_organizations")
+}
+
+model UserProfile {
+  id                String     @id @default(uuid())
+  user_id           String     @unique // Links to auth.users.id in Supabase Auth
+  full_name         String
+  avatar_url        String?
+  preferences       Json? // User preferences (theme, notifications, etc.)
+  last_active_org   String? // FK to core_organizations.id - remembers last selected org (multi-tenant)
+  role              UserRole?  @default(EXECUTIVE) // Role for internal tool users (nullable for multi-tenant)
+  status            UserStatus? @default(ACTIVE) // Status for internal tool users (nullable for multi-tenant)
+  agency_id         String? // Links AGENCY_ADMIN users to their agency
+  last_login        DateTime?
+  invite_token      String?    @unique
+  invite_expires_at DateTime?
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
+
+  // Feature 6: Contractor Payment Portal
+  contractor_id String?   @unique
+  contractor    Contractor? @relation(fields: [contractor_id], references: [id])
+
+  // Feature 12: BDR Portal
+  bdr_staff_id String?   @unique
+  bdr_staff    Staff?    @relation(fields: [bdr_staff_id], references: [id])
+
+  // Relations
+  agency Agency? @relation(fields: [agency_id], references: [id])
+
+  // Feature 6: Review/payment relations
+  reviewed_invoices  ContractorInvoice[]  @relation("InvoiceReviewer")
+  initiated_payments ContractorPayment[]  @relation("PaymentInitiator")
+
+  // Feature 15: Timesheets & Time Tracking
+  reviewed_timesheets Timesheet[] @relation("TimesheetReviewer")
+
+  @@index([user_id])
+  @@index([role])
+  @@index([status])
+  @@index([agency_id])
+  @@index([contractor_id])
+  @@index([bdr_staff_id])
+  @@index([invite_token])
+  @@map("user_profiles")
+}
+
+model Client {
+  id                   String           @id @default(uuid())
+  organization_id      String
+  name                 String
+  status               ClientStatus     @default(ACTIVE)
+  relationship_type    RelationshipType
+  custom_margin_target Decimal?         @db.Decimal(5, 2) // Nullable, overrides service target
+  start_date           DateTime
+  churn_date           DateTime?
+  is_internal          Boolean          @default(false) // Internal projects (not revenue-generating)
+  enrichment_emails_per_month Int?     // Target emails to enrich per month
+  enrichment_phones_per_month Int?     // Target phones to enrich per month
+  deleted_at           DateTime? // Soft delete
+  created_at           DateTime         @default(now())
+  updated_at           DateTime         @updatedAt
+
+  // Relations
+  organization           Organization           @relation(fields: [organization_id], references: [id])
+  revenue_records        RevenueRecord[]
+  expense_records        ExpenseRecord[]
+  contractor_assignments ContractorAssignment[]
+  client_metrics         ClientMetrics[]
+  client_services        ClientService[]
+  xero_contact_mappings  XeroContactMapping[]
+
+  // Feature 3 Relations
+  staff_assignments      StaffAssignment[]
+  subscription_allocations SubscriptionAllocation[]
+  productivity_metrics   BDRProductivityMetric[]
+  roi_metrics            ClientROI[]
+
+  // Feature: Dynamic Cost Sync
+  cash_receipts          ClientCashReceipt[]
+
+  // Per-transaction categorization rules targeting this client
+  categorization_rules   TransactionCategorizationRule[]
+
+  // Merchant mapping cache entries targeting this client (for revenue receipts)
+  merchant_mappings      MerchantMappingCache[]
+
+  // Feature 9: Service Contracts
+  service_contracts      ServiceContract[]
+
+  // Feature 10: Project Resource Allocation
+  projects               Project[]
+
+  @@index([organization_id])
+  @@index([status])
+  @@index([deleted_at])
+  @@index([organization_id, name])
+  @@map("core_clients")
+}
+
+model Service {
+  id              String    @id @default(uuid())
+  organization_id String
+  name            String // "Web Development", "SEO", "Content Marketing"
+  description     String?
+  standard_rate   Decimal   @db.Decimal(10, 2) // Hourly rate or one-time project fee
+  billing_type    String    @default("recurring") // "recurring" or "one_time"
+  target_margin   Decimal   @db.Decimal(5, 2) // Percentage (0-100)
+  is_active       Boolean   @default(true)
+  deleted_at      DateTime? // Soft delete
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  // Relations
+  organization        Organization        @relation(fields: [organization_id], references: [id])
+  revenue_records     RevenueRecord[]
+  client_services     ClientService[]
+  payment_allocations PaymentAllocation[]
+
+  // Feature 9: Service Contracts
+  service_contracts   ServiceContract[]
+
+  @@index([organization_id])
+  @@index([is_active])
+  @@map("core_services")
+}
+
+model Contractor {
+  id              String         @id @default(uuid())
+  organization_id String
+  name            String
+  rate            Decimal?        @db.Decimal(10, 2)
+  rate_type       RateType?
+  engagement_type EngagementType?
+  status          ContractorStatus @default(ACTIVE)
+  deleted_at      DateTime? // Soft delete
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  // Feature 6: Contractor Payment Portal fields
+  email                     String?
+  mercury_recipient_id      String?
+  portal_invitation_status  PortalInvitationStatus?
+  reminder_day_override     Int?        // 1-28, null = use global default
+  reminder_enabled          Boolean     @default(true)
+  required_doc_types        Json?       // Array of ContractorDocumentType strings
+  last_reminder_sent_at     DateTime?
+  last_reminder_month       Int?        // Track which month's reminder was last sent
+  last_reminder_year        Int?
+  manual_reminder_count     Int         @default(0) // Manual reminders sent this month (max 3)
+
+  // Relations
+  organization    Organization           @relation(fields: [organization_id], references: [id])
+  assignments     ContractorAssignment[]
+  expense_records ExpenseRecord[]
+  staff_members   Staff[]                // Staff associated with this contractor entity
+
+  // Feature 6: Contractor Payment Portal relations
+  invoices            ContractorInvoice[]
+  documents           ContractorDocument[]
+  payments            ContractorPayment[]
+  portal_user         UserProfile?         // via UserProfile.contractor_id
+
+  // Per-transaction categorization rules targeting this contractor
+  categorization_rules TransactionCategorizationRule[]
+
+  // Merchant mapping cache entries targeting this contractor
+  merchant_mappings    MerchantMappingCache[]
+
+  @@index([organization_id])
+  @@index([deleted_at])
+  @@index([status])
+  @@map("core_contractors")
+}
+
+model ContractorAssignment {
+  id                    String    @id @default(uuid())
+  contractor_id         String
+  client_id             String
+  start_date            DateTime
+  end_date              DateTime?
+  allocation_percentage Int       @default(100) // 0-100, supports partial allocation
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+
+  // Relations
+  contractor Contractor @relation(fields: [contractor_id], references: [id], onDelete: Cascade)
+  client     Client     @relation(fields: [client_id], references: [id], onDelete: Cascade)
+
+  @@index([contractor_id])
+  @@index([client_id])
+  @@index([start_date, end_date])
+  @@map("core_contractor_assignments")
+}
+
+model ClientService {
+  client_id   String
+  service_id  String
+  custom_rate Decimal?  @db.Decimal(10, 2) // Client-specific rate (overrides service standard_rate)
+  rate_type   RateType? // HOURLY or MONTHLY (if null, inherits from service)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  // Relations
+  client       Client               @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  service      Service              @relation(fields: [service_id], references: [id], onDelete: Cascade)
+  rate_history ServiceRateHistory[]
+
+  @@id([client_id, service_id])
+  @@index([client_id])
+  @@index([service_id])
+  @@map("core_client_services")
+}
+
+/// Tracks historical rate changes for client services.
+/// When a rate is changed, a new entry is created with the effective month/year.
+/// For cost calculations, the most recent entry on or before the target period is used.
+model ServiceRateHistory {
+  id              String   @id @default(uuid())
+  client_id       String
+  service_id      String
+  rate            Decimal  @db.Decimal(10, 2)
+  effective_month Int // 1-12: the month this rate takes effect
+  effective_year  Int // YYYY: the year this rate takes effect
+  created_at      DateTime @default(now())
+
+  // Relations
+  client_service ClientService @relation(fields: [client_id, service_id], references: [client_id, service_id], onDelete: Cascade)
+
+  @@index([client_id, service_id, effective_year, effective_month])
+  @@map("core_service_rate_history")
+}
+
+// Feature 9: Service Contracts & Billing Models
+model ServiceContract {
+  id              String         @id @default(uuid())
+  organization_id String
+  client_id       String
+  service_id      String
+  billing_model   BillingModel
+  status          ContractStatus @default(ACTIVE)
+
+  // Billing terms
+  start_month     Int            // 1-12
+  start_year      Int            // YYYY
+  end_month       Int?           // 1-12 (nullable for RETAINER)
+  end_year        Int?           // YYYY (nullable for RETAINER)
+  monthly_rate    Decimal?       @db.Decimal(10, 2) // CONTRACT and RETAINER
+  project_fee     Decimal?       @db.Decimal(10, 2) // PROJECT only
+  term_months     Int?           // CONTRACT only (auto-calculated)
+
+  // Metadata
+  notes           String?
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+  client       Client       @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  service      Service      @relation(fields: [service_id], references: [id], onDelete: Cascade)
+
+  @@index([client_id, service_id, status])
+  @@index([organization_id])
+  @@index([client_id, start_year, start_month])
+  @@map("service_contracts")
+}
+
+// ============================================================================
+// FINANCIAL SCHEMA
+// ============================================================================
+
+model RevenueRecord {
+  id                  String              @id @default(uuid())
+  organization_id     String
+  client_id           String
+  service_id          String
+  amount              Decimal             @db.Decimal(10, 2)
+  transaction_date    DateTime
+  status              RevenueStatus
+  description         String?
+  external_id         String? // ID from source system (Xero invoice ID)
+  sync_source         SyncSource          @default(MANUAL)
+  xero_invoice_id     String?
+  xero_invoice_number String?
+  revenue_sync_status RevenueSyncStatus?
+  last_synced_at      DateTime?
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+  client       Client       @relation(fields: [client_id], references: [id])
+  service      Service      @relation(fields: [service_id], references: [id])
+
+  @@unique([organization_id, xero_invoice_id])
+  @@index([organization_id])
+  @@index([client_id])
+  @@index([transaction_date])
+  @@index([sync_source, external_id])
+  @@index([revenue_sync_status])
+  @@map("financial_revenue_records")
+}
+
+model ExpenseRecord {
+  id                   String              @id @default(uuid())
+  organization_id      String
+  client_id            String? // Nullable for general expenses
+  contractor_id        String? // Nullable for non-contractor expenses
+  amount               Decimal             @db.Decimal(10, 2)
+  transaction_date     DateTime
+  category             ExpenseCategory
+  description          String?
+  external_id          String?
+  sync_source          SyncSource          @default(MANUAL)
+  xero_expense_id      String?
+  xero_account_code    String?
+  expense_sync_status  ExpenseSyncStatus?
+  last_synced_at       DateTime?
+
+  // Mercury-specific fields
+  mercury_transaction_id      String?                    @unique
+  merchant_name               String?
+  categorization_confidence   Decimal?                   @db.Decimal(3, 2)
+  mercury_sync_status         ExpenseRecordSyncStatus?
+  is_credit                   Boolean                    @default(false) // true = income/credit, false = expense/debit
+
+  // Agency linking (mutually exclusive with contractor_id for Mercury transactions)
+  agency_id            String?
+
+  // Per-transaction entity FKs (mutually exclusive -- set by rules or manual assignment)
+  subscription_id      String?
+  expense_category_id  String?
+  staff_id             String?
+
+  // Per-transaction rule audit trail
+  categorization_rule_id  String?
+
+  created_at           DateTime            @default(now())
+  updated_at           DateTime            @updatedAt
+
+  // Relations
+  organization        Organization                  @relation(fields: [organization_id], references: [id])
+  client              Client?                       @relation(fields: [client_id], references: [id])
+  contractor          Contractor?                   @relation(fields: [contractor_id], references: [id])
+  agency              Agency?                       @relation(fields: [agency_id], references: [id])
+  subscription        Subscription?                 @relation(fields: [subscription_id], references: [id])
+  expense_category    VendorExpenseCategory?         @relation(fields: [expense_category_id], references: [id])
+  staff               Staff?                        @relation(fields: [staff_id], references: [id])
+  categorization_rule TransactionCategorizationRule? @relation(fields: [categorization_rule_id], references: [id], onDelete: SetNull)
+
+  @@unique([organization_id, xero_expense_id])
+  @@index([organization_id])
+  @@index([client_id])
+  @@index([contractor_id])
+  @@index([agency_id])
+  @@index([subscription_id])
+  @@index([expense_category_id])
+  @@index([staff_id])
+  @@index([transaction_date])
+  @@index([category])
+  @@index([expense_sync_status])
+  @@index([mercury_sync_status])
+  @@index([mercury_transaction_id])
+  @@index([categorization_rule_id])
+  @@index([organization_id, amount, transaction_date]) // Business-level dedup queries
+  @@map("financial_expense_records")
+}
+
+// ============================================================================
+// ANALYTICS SCHEMA
+// ============================================================================
+
+model ClientMetrics {
+  id                  String   @id @default(uuid())
+  client_id           String
+  period_start        DateTime
+  period_end          DateTime
+  total_revenue       Decimal  @db.Decimal(10, 2)
+  total_costs         Decimal  @db.Decimal(10, 2)
+  actual_margin       Decimal  @db.Decimal(5, 2) // Percentage
+  target_margin       Decimal  @db.Decimal(5, 2) // From hierarchical lookup
+  tier_classification Int      @db.SmallInt // 1-5
+  calculated_at       DateTime @default(now())
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  // Relations
+  client Client @relation(fields: [client_id], references: [id])
+
+  @@index([client_id])
+  @@index([period_start, period_end])
+  @@index([tier_classification])
+  @@map("analytics_client_metrics")
+}
+
+model CompanyMetrics {
+  id               String   @id @default(uuid())
+  organization_id  String
+  period_start     DateTime
+  period_end       DateTime
+  portfolio_margin Decimal  @db.Decimal(5, 2)
+  total_revenue    Decimal  @db.Decimal(10, 2)
+  total_expenses   Decimal  @db.Decimal(10, 2)
+  client_count     Int
+  calculated_at    DateTime @default(now())
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@index([organization_id])
+  @@index([period_start, period_end])
+  @@map("analytics_company_metrics")
+}
+
+// ============================================================================
+// INTEGRATIONS SCHEMA
+// ============================================================================
+
+model OAuthToken {
+  id                      String        @id @default(uuid())
+  organization_id         String
+  provider                OAuthProvider
+  access_token_encrypted  String        @db.Text // Encrypted with AES-256
+  refresh_token_encrypted String?       @db.Text // Nullable for non-refreshable tokens
+  expires_at              DateTime
+  created_at              DateTime      @default(now())
+  updated_at              DateTime      @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@unique([organization_id, provider])
+  @@index([expires_at])
+  @@map("integrations_oauth_tokens")
+}
+
+model SyncLog {
+  id                String     @id @default(uuid())
+  organization_id   String
+  integration_type  String // "XERO", "MERCURY"
+  sync_started_at   DateTime   @default(now())
+  sync_completed_at DateTime?
+  status            SyncStatus @default(PENDING)
+  records_inserted  Int        @default(0)
+  records_updated   Int        @default(0)
+  records_failed    Int        @default(0)
+  error_message     String?    @db.Text
+  created_at        DateTime   @default(now())
+  updated_at        DateTime   @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@index([organization_id])
+  @@index([integration_type])
+  @@index([sync_started_at])
+  @@index([status])
+  @@map("integrations_sync_logs")
+}
+
+// Xero Integration Tables
+model XeroConnection {
+  id                 String           @id @default(uuid())
+  organization_id    String           @unique
+  xero_tenant_id     String           @unique
+  access_token       String           @db.Text // Encrypted
+  refresh_token      String           @db.Text // Encrypted
+  token_expiry       DateTime
+  scopes_granted     String[]
+  connection_status  ConnectionStatus @default(ACTIVE)
+  last_sync_at       DateTime?
+  last_sync_status   XeroSyncStatus?
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+
+  // Relations
+  organization       Organization            @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  sync_logs          XeroSyncLog[]
+  contact_mappings   XeroContactMapping[]
+  expense_mappings   XeroExpenseCategoryMapping[]
+
+  @@index([organization_id])
+  @@index([connection_status])
+  @@index([xero_tenant_id])
+  @@map("xero_connections")
+}
+
+model XeroSyncLog {
+  id                   String        @id @default(uuid())
+  connection_id        String
+  sync_type            SyncType
+  status               SyncJobStatus @default(PENDING)
+  started_at           DateTime      @default(now())
+  completed_at         DateTime?
+  duration_ms          Int?
+  invoices_processed   Int           @default(0)
+  invoices_failed      Int           @default(0)
+  expenses_processed   Int           @default(0)
+  expenses_failed      Int           @default(0)
+  contacts_mapped      Int           @default(0)
+  contacts_unmapped    Int           @default(0)
+  errors               Json          @default("[]") // Array of SyncError objects
+  triggered_by         SyncTrigger
+  created_at           DateTime      @default(now())
+
+  // Relations
+  connection XeroConnection @relation(fields: [connection_id], references: [id], onDelete: Cascade)
+
+  @@index([connection_id])
+  @@index([status])
+  @@index([started_at(sort: Desc)])
+  @@index([sync_type])
+  @@map("xero_sync_logs")
+}
+
+model XeroContactMapping {
+  id                 String      @id @default(uuid())
+  connection_id      String
+  xero_contact_id    String
+  xero_contact_name  String
+  client_id          String
+  mapping_type       MappingType
+  confidence_score   Float?
+  mapped_by_user_id  String?
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
+
+  // Relations
+  connection XeroConnection @relation(fields: [connection_id], references: [id], onDelete: Cascade)
+  client     Client         @relation(fields: [client_id], references: [id], onDelete: Cascade)
+
+  @@unique([connection_id, xero_contact_id])
+  @@index([connection_id])
+  @@index([client_id])
+  @@index([mapping_type])
+  @@map("xero_contact_mappings")
+}
+
+model XeroExpenseCategoryMapping {
+  id                    String      @id @default(uuid())
+  connection_id         String
+  account_code_pattern  String?
+  keyword_pattern       String?
+  expense_type          ExpenseType
+  priority              Int         @default(100)
+  is_active             Boolean     @default(true)
+  created_by_user_id    String?
+  created_at            DateTime    @default(now())
+  updated_at            DateTime    @updatedAt
+
+  // Relations
+  connection XeroConnection @relation(fields: [connection_id], references: [id], onDelete: Cascade)
+
+  @@index([connection_id])
+  @@index([priority])
+  @@index([expense_type])
+  @@map("xero_expense_category_mappings")
+}
+
+// Mercury Integration Tables
+model MercuryConnection {
+  id                    String                    @id @default(uuid())
+  organization_id       String                    @unique
+  api_key_encrypted     String                    @db.Text
+  connection_status     MercuryConnectionStatus   @default(ACTIVE)
+  last_sync_at          DateTime?
+  last_sync_status      MercurySyncStatus?
+  created_at            DateTime                  @default(now())
+  updated_at            DateTime                  @updatedAt
+  deleted_at            DateTime?
+
+  // Relations
+  organization          Organization              @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  sync_logs             MercurySyncLog[]
+  merchant_mappings     MerchantMappingCache[]
+  balance_history       AccountBalanceHistory[]
+
+  @@index([organization_id])
+  @@index([connection_status])
+  @@index([last_sync_at])
+  @@map("mercury_connections")
+}
+
+model MercurySyncLog {
+  id                      String               @id @default(uuid())
+  connection_id           String
+  sync_type               MercurySyncType
+  status                  MercurySyncStatus    @default(PENDING)
+  started_at              DateTime             @default(now())
+  completed_at            DateTime?
+  duration_ms             Int?
+  transactions_processed  Int                  @default(0)
+  transactions_failed     Int                  @default(0)
+  balances_updated        Int                  @default(0)
+  errors                  Json                 @default("[]")
+  triggered_by            MercurySyncTrigger
+  triggered_by_user_id    String?
+  created_at              DateTime             @default(now())
+
+  // Relations
+  connection              MercuryConnection    @relation(fields: [connection_id], references: [id], onDelete: Cascade)
+  auto_sync_run           AutoSyncRunLog?
+
+  @@index([connection_id])
+  @@index([status])
+  @@index([started_at(sort: Desc)])
+  @@index([sync_type])
+  @@map("mercury_sync_logs")
+}
+
+model MerchantMappingCache {
+  id                        String             @id @default(uuid())
+  connection_id             String
+  mercury_merchant_name     String
+  normalized_merchant_name  String
+  contractor_id             String?            // Set when merchant maps to a contractor
+  agency_id                 String?            // Set when merchant maps to an agency (mutually exclusive with contractor_id)
+  subscription_id           String?            // Set when merchant maps to a subscription (mutually exclusive with contractor_id/agency_id)
+  client_id                 String?            // Set when a CREDIT merchant maps to a client (for revenue receipts)
+  expense_category_id       String?            // Set when merchant maps to a vendor expense category
+  staff_id                  String?            // Set when merchant maps to an owner (for owner pay tracking)
+  mapping_mode              MerchantMappingMode @default(SINGLE)
+  mapping_confidence        MappingConfidence
+  confidence_score          Decimal?           @db.Decimal(3, 2)
+  mapped_by                 MappingSource
+  mapped_by_user_id         String?
+  mapped_at                 DateTime           @default(now())
+  last_transaction_date     DateTime?          // Actual date of most recent transaction for this merchant
+  created_at                DateTime           @default(now())
+
+  // Relations
+  connection                MercuryConnection       @relation(fields: [connection_id], references: [id], onDelete: Cascade)
+  contractor                Contractor?              @relation(fields: [contractor_id], references: [id])
+  agency                    Agency?                  @relation(fields: [agency_id], references: [id])
+  subscription              Subscription?            @relation(fields: [subscription_id], references: [id])
+  client                    Client?                  @relation(fields: [client_id], references: [id])
+  expense_category          VendorExpenseCategory?   @relation(fields: [expense_category_id], references: [id])
+  staff                     Staff?                   @relation(fields: [staff_id], references: [id])
+
+  @@unique([connection_id, normalized_merchant_name])
+  @@index([connection_id])
+  @@index([contractor_id])
+  @@index([agency_id])
+  @@index([subscription_id])
+  @@index([client_id])
+  @@index([expense_category_id])
+  @@index([staff_id])
+  @@index([mapping_confidence])
+  @@index([last_transaction_date])
+  @@map("merchant_mapping_cache")
+}
+
+model VendorExpenseCategory {
+  id              String                @id @default(uuid())
+  organization_id String
+  name            String
+  created_at      DateTime              @default(now())
+  deleted_at      DateTime?
+
+  // Relations
+  organization    Organization          @relation(fields: [organization_id], references: [id])
+  merchant_mappings MerchantMappingCache[]
+  categorization_rules TransactionCategorizationRule[]
+  expense_records  ExpenseRecord[]
+
+  @@unique([organization_id, name])
+  @@index([organization_id])
+  @@map("vendor_expense_categories")
+}
+
+model OwnerMonthlyPay {
+  id                   String   @id @default(uuid())
+  staff_id             String
+  organization_id      String
+  month                Int      // 1-12
+  year                 Int
+  expected_amount      Decimal  @db.Decimal(10, 2) // Snapshotted from Staff.rate at time of computation
+  actual_amount        Decimal  @db.Decimal(10, 2) // Sum of Mercury transactions for this owner/month
+  shortfall            Decimal  @db.Decimal(10, 2) // expected_amount - actual_amount (positive = underpaid)
+  cumulative_deferred  Decimal  @db.Decimal(12, 2) // Running total of shortfalls up to and including this month
+  override_amount      Decimal? @db.Decimal(10, 2) // Manual override for actual_amount (when Mercury doesn't reflect reality)
+  override_paid        Boolean  @default(false)    // Whether this month has a manual override
+  override_note        String?  @db.Text           // Reason for the override
+  notes                String?  @db.Text
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  // Relations
+  staff        Staff        @relation(fields: [staff_id], references: [id])
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@unique([staff_id, month, year])
+  @@index([organization_id, year, month(sort: Desc)])
+  @@index([staff_id, year, month(sort: Desc)])
+  @@map("owner_monthly_pay")
+}
+
+model TransactionCategorizationRule {
+  id                  String                   @id @default(uuid())
+  organization_id     String
+  rule_type           CategorizationRuleType
+  pattern             String
+  category            ExpenseCategory
+  priority            Int                      @default(100)
+  is_active           Boolean                  @default(true)
+  created_by_user_id  String
+  created_at          DateTime                 @default(now())
+  updated_at          DateTime                 @updatedAt
+
+  // Per-transaction mapping: scopes rule to a specific merchant
+  merchant_name_scope String?
+
+  // Entity FKs (optional, mutually exclusive — same pattern as MerchantMappingCache)
+  contractor_id       String?
+  subscription_id     String?
+  agency_id           String?
+  client_id           String?
+  expense_category_id String?
+  staff_id            String?
+
+  // Relations
+  organization        Organization             @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  contractor          Contractor?              @relation(fields: [contractor_id], references: [id], onDelete: SetNull)
+  subscription        Subscription?            @relation(fields: [subscription_id], references: [id], onDelete: SetNull)
+  agency              Agency?                  @relation(fields: [agency_id], references: [id], onDelete: SetNull)
+  client              Client?                  @relation(fields: [client_id], references: [id], onDelete: SetNull)
+  expense_category    VendorExpenseCategory?   @relation(fields: [expense_category_id], references: [id], onDelete: SetNull)
+  staff               Staff?                   @relation(fields: [staff_id], references: [id], onDelete: SetNull)
+  expense_records     ExpenseRecord[]          // Expense records matched by this rule
+
+  @@index([organization_id, priority(sort: Desc)])
+  @@index([organization_id, category])
+  @@index([organization_id, merchant_name_scope])
+  @@index([is_active])
+  @@index([contractor_id])
+  @@index([subscription_id])
+  @@index([agency_id])
+  @@index([client_id])
+  @@index([expense_category_id])
+  @@index([staff_id])
+  @@map("transaction_categorization_rules")
+}
+
+model AccountBalanceHistory {
+  id                  String               @id @default(uuid())
+  connection_id       String
+  mercury_account_id  String
+  account_name        String
+  account_type        MercuryAccountType
+  current_balance     Decimal              @db.Decimal(12, 2)
+  available_balance   Decimal              @db.Decimal(12, 2)
+  snapshot_date       DateTime             @db.Date
+  created_at          DateTime             @default(now())
+
+  // Relations
+  connection          MercuryConnection    @relation(fields: [connection_id], references: [id], onDelete: Cascade)
+
+  @@unique([connection_id, mercury_account_id, snapshot_date])
+  @@index([connection_id])
+  @@index([snapshot_date(sort: Desc)])
+  @@index([account_type])
+  @@map("account_balance_history")
+}
+
+// ============================================================================
+// SYSTEM SCHEMA
+// ============================================================================
+
+model FinancialTarget {
+  id              String      @id @default(uuid())
+  organization_id String
+  scope           TargetScope
+  scope_id        String? // service_id or client_id (nullable for GLOBAL)
+  target_margin   Decimal     @db.Decimal(5, 2)
+  target_revenue  Decimal?    @db.Decimal(10, 2)
+  fiscal_period   String // "Q1-2026", "FY-2026"
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@index([organization_id])
+  @@index([scope, scope_id])
+  @@index([fiscal_period])
+  @@map("system_financial_targets")
+}
+
+model GrowthScenario {
+  id                String   @id @default(uuid())
+  organization_id   String
+  scenario_name     String
+  assumptions       Json // Flexible JSON for headcount, pricing assumptions
+  projected_revenue Decimal  @db.Decimal(10, 2)
+  projected_margin  Decimal  @db.Decimal(5, 2)
+  created_by        String // User ID from auth.users
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@index([organization_id])
+  @@index([created_at])
+  @@map("system_growth_scenarios")
+}
+
+model AuditLog {
+  id              String          @id @default(uuid())
+  actor_id        String // User ID who performed the action
+  target_user_id  String? // User ID affected by the action (nullable for non-user actions)
+  action_type     AuditActionType
+  action_details  Json? // Before/after snapshots, additional context
+  ip_address      String?
+  created_at      DateTime        @default(now())
+
+  @@index([actor_id])
+  @@index([target_user_id])
+  @@index([action_type])
+  @@index([created_at])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// EMAIL LOGS
+// ============================================================================
+
+/// Tracks all outbound emails sent via Resend for admin visibility.
+model EmailLog {
+  id            String   @id @default(uuid())
+  to_address    String
+  from_address  String
+  subject       String
+  email_type    String   // "invoice_status" | "contractor_reminder" | "test_email"
+  status        String   // "sent" | "failed"
+  resend_id     String?  // Resend email ID returned on successful send
+  error_message String?
+  metadata      Json?    // Additional context (contractor name, invoice details, etc.)
+  created_at    DateTime @default(now())
+
+  @@index([email_type])
+  @@index([status])
+  @@index([created_at])
+  @@map("email_logs")
+}
+
+// ============================================================================
+// NOTIFICATIONS SYSTEM
+// ============================================================================
+
+model Notification {
+  id                   String               @id @default(uuid()) @db.Uuid
+  organization_id      String
+  user_id              String?              @db.Uuid // NULL for org-wide notifications
+  type                 NotificationType
+  priority             NotificationPriority @default(MEDIUM)
+  status               NotificationStatus   @default(UNREAD)
+  title                String               @db.VarChar(255)
+  message              String
+  source               String               @db.VarChar(100) // 'XERO', 'MERCURY', 'SYSTEM', etc.
+  metadata             Json                 @default("{}")
+  action_url           String?
+  related_entity_type  String?              @db.VarChar(100) // 'invoice', 'contact', 'sync_log', etc.
+  related_entity_id    String?
+  read_at              DateTime?
+  archived_at          DateTime?
+  created_at           DateTime             @default(now())
+  updated_at           DateTime             @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@index([organization_id])
+  @@index([user_id])
+  @@index([status])
+  @@index([type])
+  @@index([priority])
+  @@index([created_at(sort: Desc)])
+  @@index([source])
+  @@index([organization_id, status])
+  @@map("notifications")
+}
+
+model WebhookEvent {
+  id                String    @id @default(uuid()) @db.Uuid
+  source            String    @db.VarChar(100) // 'XERO', 'MERCURY', etc.
+  event_type        String    @db.VarChar(255)
+  organization_id   String?
+  payload           Json
+  headers           Json?
+  signature         String?
+  processed         Boolean   @default(false)
+  processed_at      DateTime?
+  processing_error  String?
+  created_at        DateTime  @default(now())
+
+  // Relations
+  organization Organization? @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@index([source])
+  @@index([event_type])
+  @@index([organization_id])
+  @@index([processed])
+  @@index([created_at(sort: Desc)])
+  @@map("webhook_events")
+}
+
+// ============================================================================
+// FEATURE 3: CLIENT PORTFOLIO & STAFF MANAGEMENT
+// ============================================================================
+
+model StaffRole {
+  id              String   @id @default(uuid())
+  organization_id String
+  name            String         // e.g. "BDR", "ADMIN", "DEVELOPER"
+  display_name    String         // e.g. "BDR (Business Development Representative)"
+  is_system       Boolean  @default(false) // true = default role, cannot be deleted
+  sort_order      Int      @default(0)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@unique([organization_id, name])
+  @@index([organization_id])
+  @@map("staff_roles")
+}
+
+model Staff {
+  id              String         @id @default(uuid())
+  organization_id String
+  agency_id       String?        // Set when association = agency partner
+  contractor_id   String?        // Set when association = contractor
+  name            String
+  staff_type      String         // Dynamic role from StaffRole config table (e.g. "BDR", "ADMIN", "DEVELOPER")
+  rate            Decimal        @db.Decimal(10, 2)
+  rate_type       RateType       // MONTHLY, HOURLY, DAILY
+  true_cost              Decimal?       @db.Decimal(10, 2) // What the agency pays the worker
+  true_cost_rate_type    RateType?      // Rate type for true cost
+  markup_override_type   MarkupType?    // Staff-level markup override type
+  markup_override_value  Decimal?       @db.Decimal(10, 2) // Staff-level markup override amount
+  rate_locked            Boolean        @default(false) // When true, rate is manually set
+  engagement_type           EngagementType // FULL_TIME, PART_TIME, PROJECT
+  compensation_start_date   DateTime?      // When owner compensation tracking begins
+  pay_day                   Int?           // Day of month payment is expected (1-28)
+  status             StaffStatus    @default(ACTIVE)
+  terminated_at      DateTime?
+  termination_reason String?        @db.Text
+  deleted_at         DateTime?      // Soft delete
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
+
+  // Relations
+  organization        Organization              @relation(fields: [organization_id], references: [id])
+  agency              Agency?                   @relation(fields: [agency_id], references: [id])
+  contractor          Contractor?               @relation(fields: [contractor_id], references: [id])
+  assignments         StaffAssignment[]         // M:N to clients
+  productivity        BDRProductivityMetric[]   // Only for staff_type = BDR
+  roi_metrics         BDRROI[]                  // Only for staff_type = BDR
+  subscription_allocs SubscriptionAllocation[]
+  bonuses             StaffBonus[]              // Variable cost tracking (bonuses, etc.)
+  reimbursements      StaffReimbursement[]      // Expense reimbursement tracking
+  merchant_mappings   MerchantMappingCache[]    // Mercury merchant-to-owner mappings (for pay tracking)
+  owner_monthly_pay   OwnerMonthlyPay[]         // Monthly compensation tracking (owners only)
+  categorization_rules TransactionCategorizationRule[] // Per-transaction rules targeting this staff
+  expense_records     ExpenseRecord[]           // Expense records assigned to this staff (owner pay)
+
+  // Feature 12: BDR Portal
+  pay_plan_assignments BDRPayPlanAssignment[]
+  bdr_reports          BDRMonthlyReport[]
+  bdr_expenses         BDRExpenseClaim[]
+  bdr_user_profile     UserProfile?             @relation // via UserProfile.bdr_staff_id
+
+  // Feature 15: Timesheets & Time Tracking
+  timesheets   Timesheet[]
+  time_entries TimeEntry[]
+
+  // Feature 16: Utilization & Bench Cost
+  utilization_snapshots UtilizationSnapshot[]
+
+  @@index([organization_id])
+  @@index([organization_id, staff_type])
+  @@index([organization_id, status])
+  @@index([agency_id])
+  @@index([contractor_id])
+  @@map("staff")
+}
+
+model StaffAssignment {
+  id                    String         @id @default(uuid())
+  staff_id              String
+  client_id             String
+  assignment_type       AssignmentType @default(RETAINER)
+  allocation_percentage Decimal        @db.Decimal(5, 2) // 0-100%
+  start_date            DateTime       @default(now())
+  end_date              DateTime?
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @updatedAt
+
+  // Relations
+  staff              Staff                       @relation(fields: [staff_id], references: [id])
+  client             Client                      @relation(fields: [client_id], references: [id])
+  monthly_overrides  MonthlyAllocationOverride[]
+
+  // Feature 15: Timesheets & Time Tracking
+  time_entries TimeEntry[]
+
+  @@index([staff_id])
+  @@index([client_id])
+  @@index([staff_id, client_id])
+  @@index([start_date, end_date])
+  @@map("staff_assignments")
+}
+
+model MonthlyAllocationOverride {
+  id                    String   @id @default(uuid())
+  assignment_id         String
+  month                 Int      // 1-12
+  year                  Int
+  allocation_percentage Decimal  @db.Decimal(5, 2)
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
+
+  // Relations
+  assignment StaffAssignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+
+  @@unique([assignment_id, month, year])
+  @@index([assignment_id])
+  @@index([year, month])
+  @@map("monthly_allocation_overrides")
+}
+
+model Subscription {
+  id                String    @id @default(uuid())
+  organization_id   String
+  name              String
+  total_cost        Decimal   @db.Decimal(10, 2)
+  total_seats       Int?      // Null for percentage-based subscriptions
+  billing_frequency String    // MONTHLY, ANNUAL, QUARTERLY
+  allocation_type   String    @default("PERCENTAGE_BASED") // SEAT_BASED or PERCENTAGE_BASED
+  is_active         Boolean   @default(true)
+  is_enrichment     Boolean   @default(false)  // Enrichment subscription (e.g. Clay, Apollo)
+  total_credits     Int?      // Credits included per billing period
+  credit_cost_email Decimal?  @db.Decimal(10, 4) // Credits to enrich one email
+  credit_cost_phone Decimal?  @db.Decimal(10, 4) // Credits to enrich one phone
+  deleted_at        DateTime? // Soft delete
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  // Relations
+  organization         Organization                    @relation(fields: [organization_id], references: [id])
+  allocations          SubscriptionAllocation[]
+  transaction_records  SubscriptionTransactionRecord[]
+  categorization_rules TransactionCategorizationRule[]
+  merchant_mappings    MerchantMappingCache[]
+  expense_records      ExpenseRecord[]
+
+  @@index([organization_id])
+  @@index([organization_id, is_active])
+  @@map("subscriptions")
+}
+
+model SubscriptionAllocation {
+  id                    String         @id @default(uuid())
+  subscription_id       String
+  client_id             String?        // Allocate to client...
+  staff_id              String?        // ...OR to staff (not both)
+  allocation_type       AllocationType
+  seats_allocated       Int?           // Required if SEAT_BASED
+  percentage_allocated  Decimal?       @db.Decimal(5, 2) // Required if PERCENTAGE_BASED
+  cost_allocated        Decimal        @db.Decimal(10, 2) // Calculated field
+  created_at            DateTime       @default(now())
+  updated_at            DateTime       @updatedAt
+
+  // Relations
+  subscription Subscription @relation(fields: [subscription_id], references: [id])
+  client       Client?      @relation(fields: [client_id], references: [id])
+  staff        Staff?       @relation(fields: [staff_id], references: [id])
+
+  @@index([subscription_id])
+  @@index([client_id])
+  @@index([staff_id])
+  @@map("subscription_allocations")
+}
+
+model Agency {
+  id              String    @id @default(uuid())
+  organization_id String
+  name            String
+  monthly_payment Decimal?  @db.Decimal(10, 2) // Optional budget target; actual cost derived from Mercury
+  merchant_name   String?                       // Merchant name used for Mercury auto-matching
+  start_date      DateTime  @default(now())
+  markup_type     MarkupType?               // Default markup method: PERCENTAGE or FLAT_RATE
+  markup_value    Decimal?  @db.Decimal(10, 2) // Markup amount (percentage value or flat rate)
+  markup_basis    MarkupBasis?              // BASE_PAY or TOTAL_COMPENSATION
+  deleted_at      DateTime? // Soft delete
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  // Relations
+  organization    Organization              @relation(fields: [organization_id], references: [id])
+  staff           Staff[]                   // Agency staff members
+  breakdowns      AgencyMonthlyBreakdown[]
+  expense_records ExpenseRecord[]           // Mercury transactions linked to this agency
+  invoices        AgencyInvoice[]           // Monthly invoices submitted by agency admin
+  admin_users     UserProfile[]             // Agency admin users linked to this agency
+  categorization_rules TransactionCategorizationRule[]
+  merchant_mappings    MerchantMappingCache[]
+
+  // Feature 15: Timesheets & Time Tracking
+  overtime_configs OvertimeConfig[]
+
+  @@index([organization_id])
+  @@map("agencies")
+}
+
+model AgencyMonthlyBreakdown {
+  id              String   @id @default(uuid())
+  agency_id       String
+  month           Int      // 1-12
+  year            Int      // 2024, 2025, etc.
+  breakdown       Json     // JSONB: {staff: [{staff_id, name, role, base_pay, expenses, reimbursements, notes, subtotal}], services: [{name, description, amount}]}
+  breakdown_total Decimal  @db.Decimal(10, 2) // Pre-computed sum of staff subtotals + service amounts
+  mercury_actual  Decimal? @db.Decimal(10, 2) // Sum of Mercury transactions linked to this agency for the month
+  variance        Decimal  @db.Decimal(10, 2) // breakdown_total - mercury_actual (itemized vs actual paid)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  agency Agency @relation(fields: [agency_id], references: [id])
+
+  @@unique([agency_id, month, year])
+  @@index([agency_id, year, month(sort: Desc)])
+  @@map("agency_monthly_breakdowns")
+}
+
+model BDRProductivityMetric {
+  id                String   @id @default(uuid())
+  bdr_id            String
+  client_id         String?  // Nullable: aggregate metric if NULL
+  month             Int      // 1-12
+  year              Int
+  meetings_attended Int
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  bdr    Staff   @relation(fields: [bdr_id], references: [id])
+  client Client? @relation(fields: [client_id], references: [id])
+
+  @@unique([bdr_id, client_id, month, year])
+  @@index([bdr_id, year, month(sort: Desc)])
+  @@index([client_id, year, month(sort: Desc)])
+  @@map("bdr_productivity_metrics")
+}
+
+model ClientROI {
+  id                 String   @id @default(uuid())
+  client_id          String
+  month              Int      // 1-12
+  year               Int
+  revenue            Decimal  @db.Decimal(10, 2) // From Xero invoices
+  total_costs        Decimal  @db.Decimal(10, 2) // Sum of all costs
+  profit             Decimal  @db.Decimal(10, 2) // revenue - total_costs
+  roi_percentage     Decimal  @db.Decimal(8, 2)  // (profit / total_costs) * 100
+  margin_percentage  Decimal  @db.Decimal(5, 2)  // (profit / revenue) * 100
+  calculated_at      DateTime @default(now())
+
+  // Cost breakdowns (for transparency)
+  bdr_costs          Decimal @db.Decimal(10, 2)
+  contractor_costs   Decimal @db.Decimal(10, 2)
+  subscription_costs Decimal @db.Decimal(10, 2)
+  service_costs      Decimal @db.Decimal(10, 2)
+  overhead_costs     Decimal @db.Decimal(10, 2) @default(0) // Revenue-weighted share of internal/overhead costs
+  agency_costs       Decimal @db.Decimal(10, 2) @default(0) // Agency staff costs
+  other_costs        Decimal @db.Decimal(10, 2) @default(0) // Mercury misc expenses (PAYROLL, MARKETING, OTHER)
+
+  // Relations
+  client Client @relation(fields: [client_id], references: [id])
+
+  @@unique([client_id, month, year])
+  @@index([client_id, year, month(sort: Desc)])
+  @@index([margin_percentage]) // For sorting dashboard by margin
+  @@index([roi_percentage])    // For sorting dashboard by ROI
+  @@map("client_roi")
+}
+
+model BDRROI {
+  id                      String   @id @default(uuid())
+  bdr_id                  String
+  month                   Int      // 1-12
+  year                    Int
+  revenue_attributed      Decimal  @db.Decimal(10, 2) // Client revenue * allocation %
+  bdr_cost                Decimal  @db.Decimal(10, 2) // BDR monthly rate
+  profit                  Decimal  @db.Decimal(10, 2) // revenue_attributed - bdr_cost
+  roi_percentage          Decimal  @db.Decimal(8, 2)  // (profit / bdr_cost) * 100
+  margin_percentage       Decimal  @db.Decimal(5, 2)  // (profit / revenue_attributed) * 100
+  meetings_attended_total Int                          // From BDRProductivityMetric
+  calculated_at           DateTime @default(now())
+
+  // Relations
+  bdr Staff @relation(fields: [bdr_id], references: [id])
+
+  @@unique([bdr_id, month, year])
+  @@index([bdr_id, year, month(sort: Desc)])
+  @@index([roi_percentage])
+  @@index([margin_percentage])
+  @@map("bdr_roi")
+}
+
+// ============================================================================
+// FEATURE: STAFF BONUS & VARIABLE COST TRACKING
+// ============================================================================
+
+enum BonusType {
+  PERFORMANCE
+  SIGNING
+  REFERRAL
+  RETENTION
+  QUARTERLY
+  ANNUAL
+  SPOT
+  OTHER
+
+  @@map("BonusType")
+}
+
+model StaffBonus {
+  id          String    @id @default(uuid())
+  staff_id    String
+  bonus_type  BonusType
+  amount      Decimal   @db.Decimal(10, 2)
+  description String?   @db.Text
+  month       Int       // 1-12 (matches BDRProductivityMetric pattern)
+  year        Int
+  is_approved Boolean   @default(false)
+  approved_at DateTime?
+  approved_by String?   // user_id who approved
+  is_paid     Boolean   @default(false)
+  paid_at     DateTime?
+  created_by  String    // user_id who created
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  // Relations
+  staff Staff @relation(fields: [staff_id], references: [id])
+
+  @@index([staff_id, year, month(sort: Desc)])
+  @@index([is_approved])
+  @@index([is_paid])
+  @@map("staff_bonuses")
+}
+
+// ============================================================================
+// FEATURE: STAFF REIMBURSEMENT TRACKING
+// ============================================================================
+
+enum ReimbursementType {
+  TRAVEL
+  MEALS
+  SUPPLIES
+  EQUIPMENT
+  SOFTWARE
+  PROFESSIONAL_DEV
+  OTHER
+
+  @@map("ReimbursementType")
+}
+
+model StaffReimbursement {
+  id                 String            @id @default(uuid())
+  staff_id           String
+  reimbursement_type ReimbursementType
+  amount             Decimal           @db.Decimal(10, 2)
+  description        String?           @db.Text
+  receipt_url        String?           // Future file upload support
+  month              Int               // 1-12
+  year               Int
+  is_approved        Boolean           @default(false)
+  approved_at        DateTime?
+  approved_by        String?           // user_id who approved
+  is_paid            Boolean           @default(false)
+  paid_at            DateTime?
+  created_by         String            // user_id who created
+  created_at         DateTime          @default(now())
+  updated_at         DateTime          @updatedAt
+
+  // Relations
+  staff Staff @relation(fields: [staff_id], references: [id])
+
+  @@index([staff_id, year, month(sort: Desc)])
+  @@index([is_approved])
+  @@index([is_paid])
+  @@map("staff_reimbursements")
+}
+
+// ============================================================================
+// FEATURE: AGENCY ADMIN PORTAL & INVOICING
+// ============================================================================
+
+model AgencyInvoice {
+  id            String        @id @default(uuid())
+  agency_id     String
+  month         Int           // 1-12
+  year          Int
+  status        InvoiceStatus @default(DRAFT)
+  subtotal      Decimal       @db.Decimal(10, 2) @default(0)
+  submitted_at  DateTime?
+  submitted_by  String?       // user_id of agency admin who submitted
+  reviewed_at   DateTime?
+  reviewed_by   String?       // user_id of platform admin who approved/rejected
+  paid_at       DateTime?
+  paid_by       String?       // user_id of platform admin who marked paid
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+
+  // Relations
+  agency     Agency                  @relation(fields: [agency_id], references: [id])
+  line_items AgencyInvoiceLineItem[]
+  comments   AgencyInvoiceComment[]
+
+  @@unique([agency_id, month, year])
+  @@index([agency_id, year, month(sort: Desc)])
+  @@index([status])
+  @@map("agency_invoices")
+}
+
+model AgencyInvoiceLineItem {
+  id          String              @id @default(uuid())
+  invoice_id  String
+  type        InvoiceLineItemType
+  description String
+  amount      Decimal             @db.Decimal(10, 2)
+  staff_id         String?  // Links to staff for STAFF_COST items
+  bonus_id         String?  // Links to staff_bonus for BONUS items
+  reimbursement_id String?  // Links to staff_reimbursement for REIMBURSEMENT items
+  metadata         Json?    // Extra context (rate, hours, rate_type, etc.)
+  sort_order  Int                 @default(0)
+  created_at  DateTime            @default(now())
+  updated_at  DateTime            @updatedAt
+
+  // Relations
+  invoice AgencyInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@index([invoice_id])
+  @@index([type])
+  @@map("agency_invoice_line_items")
+}
+
+model AgencyInvoiceComment {
+  id         String   @id @default(uuid())
+  invoice_id String
+  user_id    String   // Who posted the comment
+  user_name  String   // Denormalized for display
+  comment    String   @db.Text
+  created_at DateTime @default(now())
+
+  // Relations
+  invoice AgencyInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@index([invoice_id])
+  @@map("agency_invoice_comments")
+}
+
+// ============================================================================
+// FEATURE: DYNAMIC COST SYNC & AUTO-ASSOCIATION
+// ============================================================================
+
+model SubscriptionTransactionRecord {
+  id                     String       @id @default(uuid())
+  organization_id        String
+  subscription_id        String
+  mercury_transaction_id String       @unique
+  amount                 Decimal      @db.Decimal(10, 2)
+  transaction_date       DateTime
+  merchant_name          String
+  period_month           Int          // 1-12
+  period_year            Int          // e.g. 2026
+  linked_at              DateTime     @default(now())
+  created_at             DateTime     @default(now())
+
+  // Relations
+  organization  Organization @relation(fields: [organization_id], references: [id])
+  subscription  Subscription @relation(fields: [subscription_id], references: [id], onDelete: Cascade)
+
+  @@unique([subscription_id, mercury_transaction_id])
+  @@index([organization_id])
+  @@index([subscription_id, period_year, period_month(sort: Desc)])
+  @@index([mercury_transaction_id])
+  @@index([transaction_date(sort: Desc)])
+  @@map("subscription_transaction_records")
+}
+
+model ClientCashReceipt {
+  id                     String         @id @default(uuid())
+  organization_id        String
+  client_id              String
+  mercury_transaction_id String         @unique
+  amount                 Decimal        @db.Decimal(10, 2) // Net amount (what was received after fees)
+  gross_amount           Decimal?       @db.Decimal(10, 2) // What the client actually paid (null for legacy)
+  fee_amount             Decimal        @db.Decimal(10, 2) @default(0) // Fee deducted (CC/ACH/Wire)
+  fee_percentage         Decimal?       @db.Decimal(5, 4) // Rate applied (e.g. 0.0300 = 3%)
+  payment_method         PaymentMethod? // CC, ACH, Wire, Check
+  notes                  String?        // Admin notes
+  receipt_date           DateTime
+  period_month           Int            // 1-12 (primary period, fallback for un-allocated)
+  period_year            Int
+  linked_at              DateTime       @default(now())
+  linked_by_user_id      String         // Always admin — no system auto-linking for revenue
+  created_at             DateTime       @default(now())
+
+  // Relations
+  organization Organization        @relation(fields: [organization_id], references: [id])
+  client       Client              @relation(fields: [client_id], references: [id])
+  allocations  PaymentAllocation[]
+
+  @@unique([client_id, mercury_transaction_id])
+  @@index([organization_id])
+  @@index([client_id, period_year, period_month(sort: Desc)])
+  @@index([mercury_transaction_id])
+  @@index([receipt_date(sort: Desc)])
+  @@map("client_cash_receipts")
+}
+
+model AutoSyncRunLog {
+  id                                 String    @id @default(uuid())
+  organization_id                    String
+  mercury_sync_log_id                String    @unique
+  started_at                         DateTime  @default(now())
+  completed_at                       DateTime?
+  duration_ms                        Int?
+  subscription_transactions_created  Int       @default(0)
+  contractor_expense_records_created Int       @default(0)
+  needs_review_count                 Int       @default(0)
+  engine_error_count                 Int       @default(0)
+  partial_commit                     Boolean   @default(false) // true if errors occurred mid-run
+  errors                             Json      @default("[]")
+  created_at                         DateTime  @default(now())
+
+  // Relations
+  organization   Organization   @relation(fields: [organization_id], references: [id])
+  mercury_sync   MercurySyncLog @relation(fields: [mercury_sync_log_id], references: [id])
+
+  @@index([organization_id])
+  @@index([mercury_sync_log_id])
+  @@index([started_at(sort: Desc)])
+  @@map("auto_sync_run_logs")
+}
+
+// ============================================================================
+// FEATURE 6: CONTRACTOR PAYMENT PORTAL
+// ============================================================================
+
+model ContractorInvoice {
+  id                String          @id @default(uuid()) @db.Uuid
+  contractor_id     String
+  organization_id   String
+  month             Int
+  year              Int
+  base_amount       Decimal         @db.Decimal(12, 2)
+  total_amount      Decimal         @db.Decimal(12, 2)
+  description       String?
+  status            InvoiceStatus   @default(DRAFT)
+  submitted_at      DateTime?
+  reviewed_at       DateTime?
+  reviewed_by       String?
+  rejection_reason  String?
+  payment_reference String?
+  created_at        DateTime        @default(now())
+  updated_at        DateTime        @updatedAt
+
+  // Relations
+  contractor        Contractor      @relation(fields: [contractor_id], references: [id], onDelete: Restrict)
+  organization      Organization    @relation(fields: [organization_id], references: [id], onDelete: Restrict)
+  reviewer          UserProfile?    @relation("InvoiceReviewer", fields: [reviewed_by], references: [id])
+  line_items        ContractorInvoiceLineItem[]
+  documents         ContractorDocument[]
+  payment           ContractorPayment?
+
+  @@unique([contractor_id, month, year])
+  @@index([organization_id])
+  @@index([status])
+  @@index([contractor_id])
+  @@map("contractor_invoices")
+}
+
+model ContractorInvoiceLineItem {
+  id          String                   @id @default(uuid()) @db.Uuid
+  invoice_id  String                   @db.Uuid
+  type        ContractorLineItemType
+  description String
+  amount      Decimal                  @db.Decimal(12, 2)
+  sort_order  Int                      @default(0)
+  created_at  DateTime                 @default(now())
+  updated_at  DateTime                 @updatedAt
+
+  // Relations
+  invoice     ContractorInvoice        @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+
+  @@index([invoice_id])
+  @@map("contractor_invoice_line_items")
+}
+
+model ContractorDocument {
+  id              String                  @id @default(uuid()) @db.Uuid
+  invoice_id      String?                 @db.Uuid
+  contractor_id   String
+  organization_id String
+  document_type   ContractorDocumentType
+  file_name       String
+  file_path       String                  // Supabase Storage path
+  file_size       Int                     // Bytes
+  mime_type       String
+  uploaded_at     DateTime                @default(now())
+  created_at      DateTime                @default(now())
+  updated_at      DateTime                @updatedAt
+
+  // Relations
+  invoice         ContractorInvoice?      @relation(fields: [invoice_id], references: [id], onDelete: SetNull)
+  contractor      Contractor              @relation(fields: [contractor_id], references: [id], onDelete: Restrict)
+  organization    Organization            @relation(fields: [organization_id], references: [id], onDelete: Restrict)
+
+  @@index([invoice_id])
+  @@index([contractor_id])
+  @@index([organization_id])
+  @@map("contractor_documents")
+}
+
+model ContractorPayment {
+  id                      String          @id @default(uuid()) @db.Uuid
+  invoice_id              String          @unique @db.Uuid
+  contractor_id           String
+  organization_id         String
+  mercury_request_id      String?         // From request-send-money response
+  mercury_transaction_id  String?         // Populated when payment completes
+  payment_method          PaymentMethod
+  amount                  Decimal         @db.Decimal(12, 2)
+  status                  PaymentStatus   @default(PENDING)
+  failure_reason          String?
+  initiated_at            DateTime        @default(now())
+  completed_at            DateTime?
+  initiated_by            String
+  created_at              DateTime        @default(now())
+  updated_at              DateTime        @updatedAt
+
+  // Relations
+  invoice                 ContractorInvoice @relation(fields: [invoice_id], references: [id], onDelete: Restrict)
+  contractor              Contractor        @relation(fields: [contractor_id], references: [id], onDelete: Restrict)
+  organization            Organization      @relation(fields: [organization_id], references: [id], onDelete: Restrict)
+  initiator               UserProfile       @relation("PaymentInitiator", fields: [initiated_by], references: [id])
+
+  @@index([contractor_id])
+  @@index([organization_id])
+  @@index([status])
+  @@map("contractor_payments")
+}
+
+// ============================================================================
+// PAYMENT ALLOCATION & FEE TRACKING
+// ============================================================================
+
+model PaymentAllocation {
+  id                      String   @id @default(uuid())
+  client_cash_receipt_id  String
+  service_id              String?  // Optional: which service this covers
+  period_month            Int      // 1-12
+  period_year             Int
+  amount                  Decimal  @db.Decimal(10, 2)
+  description             String?  // e.g. "Dedicated BDR - October 2025"
+  sort_order              Int      @default(0)
+  created_at              DateTime @default(now())
+
+  // Relations
+  cash_receipt ClientCashReceipt @relation(fields: [client_cash_receipt_id], references: [id], onDelete: Cascade)
+  service      Service?          @relation(fields: [service_id], references: [id])
+
+  @@index([client_cash_receipt_id])
+  @@index([period_year, period_month])
+  @@index([service_id])
+  @@map("payment_allocations")
+}
+
+model PaymentMethodFeeDefault {
+  id              String        @id @default(uuid())
+  organization_id String
+  payment_method  PaymentMethod
+  fee_percentage  Decimal       @db.Decimal(5, 4) // e.g. 0.0300 = 3%
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+
+  @@unique([organization_id, payment_method])
+  @@index([organization_id])
+  @@map("payment_method_fee_defaults")
+}
+
+// ============================================================================
+// FEATURE 7: CFO STRATEGIST
+// ============================================================================
+
+model CfoRecommendation {
+  id                        String                    @id @default(uuid()) @db.Uuid
+  organization_id           String
+
+  // Identity (composite unique for deduplication)
+  category                  CfoRecommendationCategory
+  target_entity_type        String                    @db.VarChar(50) // 'subscription', 'contractor', 'client', 'staff', 'agency', 'service'
+  target_entity_id          String                    @db.Uuid
+
+  // Content
+  title                     String                    @db.VarChar(255)
+  description               String
+  estimated_monthly_impact   Decimal                  @db.Decimal(10, 2)
+  confidence_level          Decimal                   @db.Decimal(3, 2) // 0.00 - 1.00
+  supporting_data           Json                      @default("{}")
+
+  // Lifecycle
+  status                    CfoRecommendationStatus   @default(ACTIVE)
+  dismissed_reason          String?
+  dismissed_metric_snapshot  Decimal?                  @db.Decimal(10, 2)
+  deferred_until            DateTime?
+  acted_on_at               DateTime?
+  acted_on_expected_savings  Decimal?                  @db.Decimal(10, 2)
+
+  // Impact tracking
+  baseline_metric_value     Decimal?                  @db.Decimal(10, 2)
+  realized_savings          Decimal?                  @db.Decimal(10, 2)
+
+  // Timestamps
+  created_at                DateTime                  @default(now())
+  updated_at                DateTime                  @updatedAt
+  deleted_at                DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@unique([organization_id, category, target_entity_type, target_entity_id])
+  @@index([organization_id, status])
+  @@index([organization_id, category])
+  @@index([deferred_until])
+  @@map("cfo_recommendations")
+}
+
+model CfoReport {
+  id                          String        @id @default(uuid()) @db.Uuid
+  organization_id             String
+
+  report_type                 CfoReportType
+  period_start                DateTime
+  period_end                  DateTime
+
+  // Summary metrics
+  margin_actual               Decimal       @db.Decimal(5, 2)
+  margin_target               Decimal       @db.Decimal(5, 2)
+  total_revenue               Decimal       @db.Decimal(10, 2)
+  total_expenses              Decimal       @db.Decimal(10, 2)
+  recommendations_count       Int           @default(0)
+  recommendations_acted_count Int           @default(0)
+  total_potential_savings      Decimal       @db.Decimal(10, 2) @default(0)
+
+  // Full report content (structured JSON)
+  report_content              Json          @default("{}")
+
+  // Timestamps
+  created_at                  DateTime      @default(now())
+  updated_at                  DateTime      @updatedAt
+  deleted_at                  DateTime?
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  @@unique([organization_id, report_type, period_start])
+  @@index([organization_id, report_type])
+  @@map("cfo_reports")
+}
+
+// ============================================================================
+// FEATURE 10: PROJECT RESOURCE ALLOCATION
+// ============================================================================
+
+model Project {
+  id              String        @id @default(uuid()) @db.Uuid
+  organization_id String
+  name            String        @db.VarChar(200)
+  description     String?       @db.Text
+  status          ProjectStatus @default(ACTIVE)
+  client_id       String?
+  budget_target   Decimal?      @db.Decimal(12, 2)
+  start_date      DateTime      @db.Date
+  end_date        DateTime?     @db.Date
+  created_at      DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime      @updatedAt @db.Timestamptz(6)
+  deleted_at      DateTime?     @db.Timestamptz(6)
+
+  // Relations
+  organization     Organization            @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  client           Client?                 @relation(fields: [client_id], references: [id], onDelete: SetNull)
+  cost_allocations ProjectCostAllocation[]
+  cost_snapshots   ProjectCostSnapshot[]
+
+  // Feature 15: Timesheets & Time Tracking
+  time_entries TimeEntry[]
+
+  @@index([organization_id])
+  @@index([client_id])
+  @@index([status])
+  @@map("projects")
+}
+
+model ProjectCostAllocation {
+  id                    String         @id @default(uuid()) @db.Uuid
+  project_id            String         @db.Uuid
+  cost_source_type      CostSourceType
+  cost_source_id        String
+  allocation_percentage Decimal        @db.Decimal(5, 2)
+  fixed_amount          Decimal?       @db.Decimal(12, 2)
+  effective_start_date  DateTime       @db.Date
+  effective_end_date    DateTime?      @db.Date
+  notes                 String?        @db.Text
+  created_by            String
+  created_at            DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime       @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@index([project_id])
+  @@index([cost_source_type, cost_source_id])
+  @@index([effective_start_date, effective_end_date])
+  @@map("project_cost_allocations")
+}
+
+model ProjectCostSnapshot {
+  id                 String   @id @default(uuid()) @db.Uuid
+  project_id         String   @db.Uuid
+  period_month       Int
+  period_year        Int
+  subscription_costs Decimal  @default(0) @db.Decimal(12, 2)
+  staff_costs        Decimal  @default(0) @db.Decimal(12, 2)
+  contractor_costs   Decimal  @default(0) @db.Decimal(12, 2)
+  other_costs        Decimal  @default(0) @db.Decimal(12, 2)
+  total_costs        Decimal  @default(0) @db.Decimal(12, 2)
+  revenue            Decimal  @default(0) @db.Decimal(12, 2)
+  roi                Decimal? @db.Decimal(8, 4)
+  calculated_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  project Project @relation(fields: [project_id], references: [id], onDelete: Cascade)
+
+  @@unique([project_id, period_month, period_year])
+  @@index([period_year, period_month])
+  @@map("project_cost_snapshots")
+}
+
+// ============================================================================
+// FEATURE 11: CAP TABLE
+// ============================================================================
+
+model CapTableStakeholder {
+  id              String    @id @default(uuid()) @db.Uuid
+  organization_id String
+  name            String    @db.VarChar(200)
+  email           String?   @db.VarChar(255)
+  role_title      String?   @db.VarChar(100)
+  created_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime  @updatedAt @db.Timestamptz(6)
+  deleted_at      DateTime? @db.Timestamptz(6)
+
+  // Relations
+  organization         Organization        @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  holdings             EquityHolding[]
+  transactions_as_from EquityTransaction[] @relation("TransactionFrom")
+  transactions_as_to   EquityTransaction[] @relation("TransactionTo")
+
+  @@unique([organization_id, email])
+  @@index([organization_id])
+  @@map("cap_table_stakeholders")
+}
+
+model ShareClass {
+  id                String    @id @default(uuid()) @db.Uuid
+  organization_id   String
+  name              String    @db.VarChar(100)
+  authorized_shares Int
+  reserved_shares   Int       @default(0)
+  price_per_share   Decimal?  @db.Decimal(12, 4)
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime  @updatedAt @db.Timestamptz(6)
+  deleted_at        DateTime? @db.Timestamptz(6)
+
+  // Relations
+  organization Organization      @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  holdings     EquityHolding[]
+  transactions EquityTransaction[]
+
+  @@unique([organization_id, name])
+  @@index([organization_id])
+  @@map("cap_table_share_classes")
+}
+
+model EquityHolding {
+  id             String   @id @default(uuid()) @db.Uuid
+  stakeholder_id String   @db.Uuid
+  share_class_id String   @db.Uuid
+  shares_held    Int
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @updatedAt @db.Timestamptz(6)
+
+  // Relations
+  stakeholder CapTableStakeholder @relation(fields: [stakeholder_id], references: [id], onDelete: Cascade)
+  share_class ShareClass          @relation(fields: [share_class_id], references: [id], onDelete: Cascade)
+
+  @@unique([stakeholder_id, share_class_id])
+  @@index([stakeholder_id])
+  @@index([share_class_id])
+  @@map("cap_table_equity_holdings")
+}
+
+model EquityTransaction {
+  id                  String                @id @default(uuid()) @db.Uuid
+  organization_id     String
+  transaction_type    EquityTransactionType
+  transaction_date    DateTime              @db.Date
+  share_class_id      String                @db.Uuid
+  from_stakeholder_id String?               @db.Uuid
+  to_stakeholder_id   String?               @db.Uuid
+  shares_affected     Int
+  price_per_share     Decimal?              @db.Decimal(12, 4)
+  notes               String?               @db.Text
+  created_by          String
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  organization     Organization         @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  share_class      ShareClass           @relation(fields: [share_class_id], references: [id], onDelete: Cascade)
+  from_stakeholder CapTableStakeholder?  @relation("TransactionFrom", fields: [from_stakeholder_id], references: [id])
+  to_stakeholder   CapTableStakeholder?  @relation("TransactionTo", fields: [to_stakeholder_id], references: [id])
+
+  @@index([organization_id])
+  @@index([organization_id, transaction_date])
+  @@index([from_stakeholder_id])
+  @@index([to_stakeholder_id])
+  @@index([share_class_id])
+  @@map("cap_table_equity_transactions")
+}
+
+// ============================================================================
+// FEATURE 12: BDR PORTAL — PAY PLANS, REPORTS & EXPENSES
+// ============================================================================
+
+model BDRPayPlan {
+  id              String        @id @default(uuid())
+  organization_id String
+  name            String        @db.VarChar(200)
+  description     String?       @db.Text
+  base_metric     BDRBaseMetric
+  effective_start DateTime
+  effective_end   DateTime?
+  is_active       Boolean       @default(true)
+  created_by      String        // user_id who created
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  // Relations
+  organization Organization           @relation(fields: [organization_id], references: [id])
+  tiers        BDRBonusTier[]
+  assignments  BDRPayPlanAssignment[]
+  reports      BDRMonthlyReport[]
+
+  @@index([organization_id])
+  @@index([organization_id, is_active])
+  @@map("bdr_pay_plans")
+}
+
+model BDRBonusTier {
+  id            String   @id @default(uuid())
+  pay_plan_id   String
+  min_threshold Int      // Start of tier range (inclusive), >= 1
+  max_threshold Int?     // End of range (inclusive); NULL = uncapped top tier
+  payout_rate   Decimal  @db.Decimal(10, 2) // Dollar amount per meeting in this tier
+  sort_order    Int      // Display/calculation order
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  pay_plan BDRPayPlan @relation(fields: [pay_plan_id], references: [id], onDelete: Cascade)
+
+  @@index([pay_plan_id, sort_order])
+  @@map("bdr_bonus_tiers")
+}
+
+model BDRPayPlanAssignment {
+  id             String    @id @default(uuid())
+  pay_plan_id    String
+  staff_id       String
+  effective_from DateTime
+  effective_to   DateTime? // NULL = currently active
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
+
+  // Relations
+  pay_plan BDRPayPlan @relation(fields: [pay_plan_id], references: [id], onDelete: Cascade)
+  staff    Staff      @relation(fields: [staff_id], references: [id])
+
+  @@unique([staff_id, effective_from])
+  @@index([staff_id])
+  @@index([pay_plan_id])
+  @@map("bdr_pay_plan_assignments")
+}
+
+model BDRMonthlyReport {
+  id               String          @id @default(uuid())
+  organization_id  String
+  staff_id         String
+  month            Int             // 1-12
+  year             Int
+  meetings_booked  Int             @default(0)
+  meetings_showed  Int             @default(0)
+  pay_plan_id      String?         // Snapshot of assigned plan at submission
+  calculated_bonus Decimal         @db.Decimal(10, 2) @default(0)
+  bonus_breakdown  Json?           // Tier-by-tier calculation detail
+  status           BDRReportStatus @default(DRAFT)
+  notes            String?         @db.Text
+  admin_notes      String?         @db.Text
+  submitted_at     DateTime?
+  approved_at      DateTime?
+  approved_by      String?         // user_id who approved
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id])
+  staff        Staff        @relation(fields: [staff_id], references: [id])
+  pay_plan     BDRPayPlan?  @relation(fields: [pay_plan_id], references: [id])
+
+  @@unique([staff_id, month, year])
+  @@index([organization_id, year, month])
+  @@index([staff_id, year, month])
+  @@index([status])
+  @@map("bdr_monthly_reports")
+}
+
+model BDRExpenseCategory {
+  id              String   @id @default(uuid())
+  organization_id String
+  name            String   @db.VarChar(100)
+  description     String?  @db.Text
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  organization Organization      @relation(fields: [organization_id], references: [id])
+  expenses     BDRExpenseClaim[]
+
+  @@unique([organization_id, name])
+  @@index([organization_id, is_active])
+  @@map("bdr_expense_categories")
+}
+
+model BDRExpenseClaim {
+  id                 String           @id @default(uuid())
+  organization_id    String
+  staff_id           String
+  expense_date       DateTime
+  category_id        String
+  amount             Decimal          @db.Decimal(10, 2)
+  description        String?          @db.Text
+  receipt_path       String?          // Supabase Storage path
+  receipt_file_name  String?
+  receipt_file_size  Int?             // File size in bytes
+  receipt_mime_type  String?
+  has_receipt        Boolean          @default(false)
+  status             BDRExpenseStatus @default(SUBMITTED)
+  admin_notes        String?          @db.Text
+  approved_at        DateTime?
+  approved_by        String?          // user_id
+  reimbursed_at      DateTime?
+  created_at         DateTime         @default(now())
+  updated_at         DateTime         @updatedAt
+
+  // Relations
+  organization Organization       @relation(fields: [organization_id], references: [id])
+  staff        Staff               @relation(fields: [staff_id], references: [id])
+  category     BDRExpenseCategory  @relation(fields: [category_id], references: [id])
+
+  @@index([organization_id, status])
+  @@index([staff_id, status])
+  @@index([staff_id, expense_date])
+  @@map("bdr_expense_claims")
+}
+
+// ============================================================================
+// FEATURE 15: TIMESHEETS & TIME TRACKING
+// ============================================================================
+
+model OvertimeConfig {
+  id                     String   @id @default(uuid())
+  organization_id        String
+  agency_id              String?  // Null for org-level default; set for agency-level override
+  weekly_hours_threshold Decimal  @default(40) @db.Decimal(5, 2)
+  overtime_multiplier    Decimal  @default(1.5) @db.Decimal(3, 2)
+  is_enabled             Boolean  @default(true)
+  created_at             DateTime @default(now())
+  updated_at             DateTime @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  agency       Agency?      @relation(fields: [agency_id], references: [id], onDelete: Cascade)
+
+  @@unique([organization_id, agency_id]) // One config per org or per agency
+  @@index([organization_id])
+  @@index([agency_id])
+  @@map("overtime_configs")
+}
+
+model Timesheet {
+  id              String          @id @default(uuid())
+  organization_id String
+  staff_id        String
+  period_start    DateTime        @db.Date // Monday of the week
+  period_end      DateTime        @db.Date // Sunday of the week
+  status          TimesheetStatus @default(DRAFT)
+
+  // Aggregated totals (denormalized for query performance, updated on entry save)
+  total_hours     Decimal         @default(0) @db.Decimal(6, 2)
+  billable_hours  Decimal         @default(0) @db.Decimal(6, 2)
+  overtime_hours  Decimal         @default(0) @db.Decimal(6, 2)
+
+  // Submission fields
+  submitted_at    DateTime?
+  submitted_by    String?         // user_id of the submitter (auth.users.id)
+
+  // Review fields
+  reviewed_at     DateTime?
+  reviewed_by     String?         // UserProfile.id of the reviewer
+  rejection_reason String?
+
+  // Standard fields
+  deleted_at      DateTime?       // Soft delete
+  created_at      DateTime        @default(now())
+  updated_at      DateTime        @updatedAt
+
+  // Relations
+  organization Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  staff        Staff        @relation(fields: [staff_id], references: [id], onDelete: Restrict)
+  reviewer     UserProfile? @relation("TimesheetReviewer", fields: [reviewed_by], references: [id])
+  entries      TimeEntry[]
+
+  // Constraints
+  @@unique([staff_id, period_start]) // One timesheet per staff per week
+  @@index([organization_id])
+  @@index([organization_id, status])
+  @@index([staff_id])
+  @@index([staff_id, period_start])
+  @@index([status])
+  @@index([period_start, period_end])
+  @@index([reviewed_by])
+  @@map("timesheets")
+}
+
+model TimeEntry {
+  id              String   @id @default(uuid())
+  timesheet_id    String
+  staff_id        String   // Denormalized from Timesheet for query convenience
+  assignment_id   String?  // Nullable for non-assigned (bench) time
+  project_id      String?  @db.Uuid // Optional project reference
+  entry_date      DateTime @db.Date
+  hours           Decimal  @db.Decimal(4, 2) // 0.25 - 24.00
+  description     String?  @db.Text // Optional in DRAFT, required on SUBMITTED
+  is_billable     Boolean  @default(true)
+  is_overtime     Boolean  @default(false) // Set during overtime calculation
+
+  // Standard fields
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  timesheet  Timesheet       @relation(fields: [timesheet_id], references: [id], onDelete: Cascade)
+  staff      Staff           @relation(fields: [staff_id], references: [id], onDelete: Restrict)
+  assignment StaffAssignment? @relation(fields: [assignment_id], references: [id], onDelete: Restrict)
+  project    Project?        @relation(fields: [project_id], references: [id], onDelete: SetNull)
+
+  // Constraints: prevent duplicate entries for same day + assignment
+  @@unique([timesheet_id, entry_date, assignment_id])
+  @@index([timesheet_id])
+  @@index([staff_id])
+  @@index([assignment_id])
+  @@index([project_id])
+  @@index([entry_date])
+  @@index([timesheet_id, entry_date])
+  @@map("time_entries")
+}
+
+// ============================================================================
+// FEATURE 16: UTILIZATION & BENCH COST
+// ============================================================================
+
+enum UtilizationDataSource {
+  TIMESHEET   // Calculated from approved TimeEntry records
+  ALLOCATION  // Estimated from StaffAssignment.allocation_percentage
+  BLENDED     // Mix of timesheet + allocation data within the same period
+
+  @@map("UtilizationDataSource")
+}
+
+/// Point-in-time utilization metrics for a staff member over a specific period.
+/// Generated by scheduled cron (weekly) or manual trigger. Immutable once created.
+/// Follows the ClientMetrics snapshot pattern for period-based analytics.
+model UtilizationSnapshot {
+  id                String                @id @default(uuid())
+  organization_id   String
+  staff_id          String
+
+  // Period boundaries (inclusive)
+  period_start      DateTime
+  period_end        DateTime
+
+  // Hours breakdown
+  available_hours   Decimal               @db.Decimal(8, 2)
+  billable_hours    Decimal               @db.Decimal(8, 2)
+  non_billable_hours Decimal              @db.Decimal(8, 2)
+  bench_hours       Decimal               @db.Decimal(8, 2)
+
+  // Calculated metrics
+  utilization_rate  Decimal               @db.Decimal(5, 2)
+  bench_cost        Decimal               @db.Decimal(10, 2)
+
+  // Cost rate used for bench cost calculation (hourly equivalent)
+  cost_rate_hourly  Decimal               @db.Decimal(10, 2)
+  cost_rate_source  String                @db.VarChar(20)
+
+  // Data provenance
+  data_source       UtilizationDataSource
+
+  // Alert tracking (for deduplication across consecutive snapshots)
+  alert_level       String?               @db.VarChar(20)
+
+  // Metadata
+  generated_at      DateTime              @default(now())
+  created_at        DateTime              @default(now())
+  updated_at        DateTime              @updatedAt
+
+  // Relations
+  organization      Organization          @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+  staff             Staff                 @relation(fields: [staff_id], references: [id], onDelete: Cascade)
+
+  // Constraints: one snapshot per staff per period
+  @@unique([staff_id, period_start, period_end])
+
+  // Query indexes
+  @@index([organization_id])
+  @@index([staff_id])
+  @@index([organization_id, period_start, period_end])
+  @@index([staff_id, period_start])
+  @@index([organization_id, alert_level])
+  @@index([generated_at(sort: Desc)])
+
+  @@map("utilization_snapshots")
+}
+
+/// Configurable utilization thresholds for an organization.
+/// Supports a default target plus optional overrides per staff type.
+/// Drives color-coded status indicators (green/yellow/red) and alert triggers.
+model UtilizationTarget {
+  id                   String   @id @default(uuid())
+  organization_id      String
+
+  // Optional staff type scope (null = organization-wide default)
+  staff_type           String?
+
+  // Thresholds (percentages, 0-100)
+  target_rate          Decimal  @db.Decimal(5, 2)
+  warning_threshold    Decimal  @db.Decimal(5, 2)
+  critical_threshold   Decimal  @db.Decimal(5, 2)
+
+  // Working hours configuration
+  standard_daily_hours Decimal  @db.Decimal(4, 2)  @default(8.00)
+
+  // Feature toggle
+  enabled              Boolean  @default(true)
+
+  // Timestamps
+  deleted_at           DateTime?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+
+  // Relations
+  organization         Organization @relation(fields: [organization_id], references: [id], onDelete: Cascade)
+
+  // Constraints: one target per org per staff type (null staff_type = default)
+  @@unique([organization_id, staff_type])
+
+  // Query indexes
+  @@index([organization_id])
+  @@index([organization_id, enabled])
+
+  @@map("utilization_targets")
+}

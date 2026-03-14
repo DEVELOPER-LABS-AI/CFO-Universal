@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AuditActionType" ADD VALUE 'USER_PROFILE_RECOVERED';

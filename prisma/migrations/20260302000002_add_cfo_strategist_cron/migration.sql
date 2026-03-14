@@ -1,0 +1,24 @@
+-- CFO Strategist Nightly Cron Job
+--
+-- NOTE: pg_cron and pg_net extensions must be configured directly in Supabase dashboard.
+-- These cannot be managed via Prisma migrations because shadow database does not support
+-- the pg_cron extension. Apply the cron schedule via Supabase SQL Editor:
+--
+--   SELECT cron.schedule(
+--     'cfo-strategist-nightly',
+--     '0 3 * * *',
+--     $$
+--     SELECT net.http_post(
+--       url := current_setting('app.supabase_url') || '/functions/v1/cfo-strategist-nightly',
+--       headers := jsonb_build_object(
+--         'Content-Type', 'application/json',
+--         'Authorization', 'Bearer ' || current_setting('app.cron_secret')
+--       ),
+--       body := '{}'::jsonb
+--     );
+--     $$
+--   );
+--
+-- Rollback: SELECT cron.unschedule('cfo-strategist-nightly');
+
+-- This migration is intentionally empty. See comments above.
